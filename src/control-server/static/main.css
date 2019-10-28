@@ -1,0 +1,122 @@
+html,
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  line-height: 1.5;
+  font-size: 14px;
+  margin: 0;
+  padding: 0;
+  color: #212529;
+}
+
+h2 {
+  margin: 0 0 0.5em;
+  font-size: 1.25em;
+}
+
+.header {
+  color: #fff;
+  min-height: 4rem;
+  background: #232f3c;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.header__logo {
+  display: inline-block;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 1.1em 0 0 1em;
+}
+
+.container {
+  margin: 0 auto;
+  padding: 1em;
+}
+
+.filters {
+  margin-bottom: 1em;
+}
+
+.filters__item {
+  display: inline-block;
+  margin-right: 1em;
+}
+
+.scenario-table {
+  border-spacing: 0;
+  border: 1px solid #bbb;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  max-width: 1400px;
+  width: 100%;
+}
+
+.scenario-table thead {
+  background: #e2e2e2;
+  color: #666;
+}
+
+.scenario-table td {
+  padding: 0.25em 0.5em;
+}
+
+.scenario-table__th {
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+.scenario-table__th-id {
+  width: 40%;
+}
+
+.scenario-table__th-tags {
+  width: 20%;
+}
+
+.scenario-table__th-status {
+  width: 100px;
+}
+
+.scenario-table__th-actions {
+  width: 100px;
+}
+
+.scenario-table__summary-row:nth-of-type(4n + 2) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.scenario-table__summary-row:hover {
+  cursor: pointer;
+  background-color: #f4f4f4;
+}
+
+.scenario-table__summary-row.is-id-filtered,
+.scenario-table__summary-row.is-tags-filtered,
+.scenario-table__summary-row.is-id-filtered + .scenario-table__details-row,
+.scenario-table__summary-row.is-tags-filtered + .scenario-table__details-row {
+  display: none;
+}
+
+.scenario-table__details-row {
+  display: none;
+}
+
+.scenario-table__details-row td {
+  padding: 1em;
+}
+
+.scenario-table__details-row.is-open {
+  display: table-row;
+}
+
+.form__label {
+  display: block;
+  font-weight: bold;
+}
+
+.form__field {
+  display: block;
+  margin-bottom: 1em;
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Mock Server</title>
+  <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+<div class="header">
+  <span class="header__logo">
+    Mock Server
+  </span>
+</div>
+<div class="container">
+  <a href="/api/request-logs" target="_blank">View request logs</a>
+  <h1>Scenarios</h1>
+  <div class="filters">
+    <div class="filters__item">
+      Filter by ID: <input name="id-filter" type="text" />
+    </div>
+    <div class="filters__item">
+      Filter by tag: <input name="tags-filter" type="text" />
+    </div>
+  </div>
+  <table class="scenario-table">
+    <thead>
+      <td class="scenario-table__th scenario-table__th-id">ID</td>
+      <td class="scenario-table__th scenario-table__th-tags">Tags</td>
+      <td class="scenario-table__th scenario-table__th-status">Status</td>
+      <td class="scenario-table__th scenario-table__th-actions">Actions</td>
+    </thead>
+    <tbody>
+    <% for (const scenario of scenarios) { %>
+      <tr class="scenario-table__summary-row" data-scenario-id="<%= scenario.id %>" data-scenario-tags="<%= scenario.tags.join(', ') %>">
+        <td class="scenario-table__col-id"><%= scenario.id %></td>
+        <td class="scenario-table__col-tags"><%= scenario.tags.join(", ") %></td>
+        <td class="scenario-table__col-status"></td>
+        <td class="scenario-table__col-actions">
+          <form class="form" action="/api/scenarios/<%= scenario.id %>/start"  data-scenario-id="<%= scenario.id %>" method="GET" target="_blank">
+            <button type="submit">Start</button>
+          </form>
+        </td>
+      </tr>
+      <tr class="scenario-table__details-row">
+        <td colspan="4">
+          <% if (scenario.description) { %>
+            <h2>Description</h2>
+            <%- scenario.description %>
+          <% } %>
+
+          <% if (scenario.config) { %>
+            <h2>Configuration</h2>
+            <form class="form" action="/api/scenarios/<%= scenario.id %>/start" data-scenario-id="<%= scenario.id %>" method="GET" target="_blank">
+              <% for ([name, config] of Object.entries(scenario.config)) { %>
+                <div class="form__field">
+                  <label class="form__label" for="config_<%= name %>"><%= name  %></label>
+                  <% if (config.type === "string" && config.enum) { %>
+                  <select id="config_<%= name %>" name="config[<%= name  %>]">
+                    <option value="">Select</option>
+                    <% for (enumValue of config.enum) { %>
+                    <option value="<%= enumValue  %>"<%= enumValue === config.default ? ' selected' : ''  %>>
+                      <%= enumValue  %>
+                    </option>
+                    <% } %>
+                  </select>
+                  <% } %>
+                </div>
+              <% } %>
+              <button type="submit">Start</button>
+            </form>
+          <% } %>
+        </td>
+      </tr>
+    <% } %>
+    </tbody>
+  </table>
+</div>
+<script src="/static/main.js"></script>
+</body>
+</html>
