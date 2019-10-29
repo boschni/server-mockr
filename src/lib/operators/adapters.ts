@@ -9,6 +9,7 @@ import {
   lowerThanOrEqual,
   matchObject,
   not,
+  oneOf,
   regex,
   startsWith
 } from "./match/matchers";
@@ -29,6 +30,13 @@ const allOfAdapter = (defs: MatchOperatorDefinition[]) => {
     .map(def => definitionToMatcher(def))
     .filter(fn => fn) as MatchFn[];
   return allOf(...matchers);
+};
+
+const oneOfAdapter = (defs: MatchOperatorDefinition[]) => {
+  const matchers = defs
+    .map(def => definitionToMatcher(def))
+    .filter(fn => fn) as MatchFn[];
+  return oneOf(...matchers);
 };
 
 const jsonAdapter = (def: MatchOperatorDefinition) => {
@@ -61,6 +69,7 @@ export interface MatchOperatorDefinition {
   lowerThanOrEqual?: Parameters<typeof lowerThanOrEqual>[0];
   matchObject?: Parameters<typeof matchObject>[0];
   not?: Parameters<typeof notAdapter>[0];
+  oneOf?: Parameters<typeof oneOf>[0];
   pipe?: Parameters<typeof matchPipeAdapter>[0];
   regex?: Parameters<typeof regex>[0];
   startsWith?: Parameters<typeof startsWith>[0];
@@ -77,6 +86,7 @@ const matchAdapters = {
   lowerThanOrEqual,
   matchObject,
   not: notAdapter,
+  oneOf: oneOfAdapter,
   pipe: matchPipeAdapter,
   regex,
   startsWith

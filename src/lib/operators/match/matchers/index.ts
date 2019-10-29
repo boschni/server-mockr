@@ -8,5 +8,6 @@ export * from "./lowerThan";
 export * from "./lowerThanOrEqual";
 export * from "./matchObject";
 export * from "./not";
+export * from "./oneOf";
 export * from "./regex";
 export * from "./startsWith";
