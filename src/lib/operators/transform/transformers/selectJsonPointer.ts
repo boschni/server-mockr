@@ -1,4 +1,7 @@
-import { get } from "json-pointer";
+import { get, has } from "json-pointer";
 
-export const selectJsonPointer = (pointer: string) => (input: any): unknown =>
-  typeof input === "object" ? get(input, pointer) : undefined;
+export const selectJsonPointer = (pointer: string) => (input: any): unknown => {
+  if (typeof input === "object" && has(input, pointer)) {
+    return get(input, pointer);
+  }
+};

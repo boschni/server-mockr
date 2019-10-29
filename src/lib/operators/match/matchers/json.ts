@@ -4,7 +4,7 @@ export const json = (fn?: MatchFn) => (input: string): MatchResult => {
   let output: any;
 
   try {
-    output = JSON.parse(input);
+    output = typeof input === "object" ? input : JSON.parse(input);
   } catch {
     return {
       message: `be valid JSON`,
