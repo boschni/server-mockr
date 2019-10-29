@@ -11,7 +11,6 @@ import { RequestLogManager } from "../lib/RequestLogManager";
 import { ScenarioManager } from "../lib/ScenarioManager";
 import {
   createResponseValue,
-  hasResponse,
   incomingMessageToRequestValue,
   queryParamToObject,
   respondWithResponseValue
@@ -53,6 +52,10 @@ export class ControlServer {
     this.app.get("/api/scenarios/:id/start", this.handleGetStartScenario);
     this.app.get("/api/scenarios/:id/stop", this.handleGetStopScenario);
     this.app.get("/api/scenarios/:id/reset", this.handleGetResetScenario);
+    this.app.get(
+      "/api/scenarios/:id/bootstrap",
+      this.handleGetBootstrapScenario
+    );
   }
 
   public start() {
@@ -126,11 +129,13 @@ export class ControlServer {
    */
   private handleGetScenarios = async (_req: Request, res: Response) => {
     const scenarios = this.scenarioManager.getScenarios();
+
     const json = JSON.parse(
       JSON.stringify(scenarios, (_, val) =>
         typeof val === "function" ? val.toString() : val
       )
     );
+
     res.json(json);
   };
 
@@ -138,12 +143,15 @@ export class ControlServer {
    * This handler gets a specific scenarios.
    */
   private handleGetScenario = async (req: Request, res: Response) => {
-    if (!this.scenarioManager.hasScenario(req.params.id)) {
+    const { id } = req.params;
+
+    if (!this.scenarioManager.hasScenario(id)) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
 
-    const scenario = this.scenarioManager.getScenario(req.params.id);
+    const scenario = this.scenarioManager.getScenario(id);
+
     res.json(scenario);
   };
 
@@ -151,44 +159,35 @@ export class ControlServer {
    * This handler starts a specific scenario.
    */
   private handleGetStartScenario = async (req: Request, res: Response) => {
-    if (!this.scenarioManager.hasScenario(req.params.id)) {
+    const { id } = req.params;
+
+    if (!this.scenarioManager.hasScenario(id)) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
 
-    const id = req.params.id;
     const request = incomingMessageToRequestValue(req);
-    const response = createResponseValue();
     const config = queryParamToObject<ConfigValue>("config", request.query);
     const state = queryParamToObject<StateValue>("state", request.query);
 
-    await this.scenarioManager.startScenario(
-      id,
-      config,
-      state,
-      request,
-      response
-    );
+    await this.scenarioManager.startScenario(id, config, state);
 
     res.setHeader("Cache-Control", "no-cache");
-
-    if (hasResponse(response)) {
-      await respondWithResponseValue(res, response);
-    } else {
-      res.send("server-mockr: Scenario started");
-    }
+    res.send("server-mockr: Scenario started");
   };
 
   /**
    * This handler stops a specific scenario.
    */
   private handleGetStopScenario = async (req: Request, res: Response) => {
-    if (!this.scenarioManager.hasScenario(req.params.id)) {
+    const { id } = req.params;
+
+    if (!this.scenarioManager.hasScenario(id)) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
 
-    this.scenarioManager.stopScenario(req.params.id);
+    this.scenarioManager.stopScenario(id);
 
     res.setHeader("Cache-Control", "no-cache");
     res.send("server-mockr: Scenario stopped");
@@ -198,14 +197,37 @@ export class ControlServer {
    * This handler reset a specific scenario.
    */
   private handleGetResetScenario = async (req: Request, res: Response) => {
-    if (!this.scenarioManager.hasScenario(req.params.id)) {
+    const { id } = req.params;
+
+    if (!this.scenarioManager.hasScenario(id)) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
 
-    this.scenarioManager.resetScenario(req.params.id);
+    this.scenarioManager.resetScenario(id);
 
     res.setHeader("Cache-Control", "no-cache");
     res.send("server-mockr: Scenario reset");
+  };
+
+  /**
+   * This handler bootstraps a client for a specific scenario.
+   */
+  private handleGetBootstrapScenario = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    if (!this.scenarioManager.hasScenario(id)) {
+      res.status(404).send("server-mockr: Scenario not found");
+      return;
+    }
+
+    const request = incomingMessageToRequestValue(req);
+    const response = createResponseValue();
+
+    response.headers["Cache-Control"] = "no-cache";
+    response.body = "server-mockr: Scenario bootstrapped";
+
+    await this.scenarioManager.bootstrapScenario(id, request, response);
+    await respondWithResponseValue(res, response);
   };
 }

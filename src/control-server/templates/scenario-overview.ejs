@@ -65,6 +65,15 @@
             target="_blank">
             <button type="submit">Reset</button>
           </form>
+          <form
+            data-scenario-bootstrap-form=""
+            data-scenario-bootstrap-form-id="<%= scenario.id %>"
+            class="form"
+            action="/api/scenarios/<%= scenario.id %>/bootstrap"
+            method="GET"
+            target="_blank">
+            <button type="submit">Bootstrap</button>
+          </form>
         </td>
       </tr>
       <tr class="scenario-table__details-row">

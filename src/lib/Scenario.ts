@@ -7,7 +7,7 @@ import {
 import { ScenarioRequestLog } from "./RequestLogManager";
 import {
   ScenarioDefinition,
-  ScenarioOnStartDefinition
+  ScenarioOnBootstrapDefinition
 } from "./ScenarioDefinition";
 import { createDefaultedConfig, createDefaultedState } from "./valueHelpers";
 import {
@@ -25,11 +25,11 @@ export interface ScenarioRequestContext {
   response: ResponseValue;
 }
 
-interface StartScenarioContext {
+interface BootstrapScenarioContext {
   config: ConfigValue;
   globals: GlobalsValue;
-  request?: RequestValue;
-  response?: ResponseValue;
+  request: RequestValue;
+  response: ResponseValue;
   state: StateValue;
 }
 
@@ -50,33 +50,30 @@ export class Scenario {
     );
   }
 
-  public async start(
-    config?: ConfigValue,
-    state?: StateValue,
-    request?: RequestValue,
-    response?: ResponseValue
-  ) {
+  public async start(config?: ConfigValue, state?: StateValue) {
     const def = this.definition;
-
     const defaultedConfig = createDefaultedConfig(config, def.config);
     const defaultedState = createDefaultedState(state, def.state);
-
-    if (def.onStart) {
-      const ctx: StartScenarioContext = {
-        config: defaultedConfig,
-        globals: this.config.globals,
-        request,
-        response,
-        state: defaultedState
-      };
-      await this.onStart(def.onStart, ctx);
-    }
-
     this.expectationManager.start(defaultedConfig, defaultedState);
   }
 
   public stop() {
     this.expectationManager.stop();
+  }
+
+  public async bootstrap(request: RequestValue, response: ResponseValue) {
+    const def = this.definition;
+
+    if (def.onBootstrap) {
+      const ctx: BootstrapScenarioContext = {
+        config: this.expectationManager.getConfig(),
+        globals: this.config.globals,
+        request,
+        response,
+        state: this.expectationManager.getState()
+      };
+      await this.onBootstrap(def.onBootstrap, ctx);
+    }
   }
 
   public async onRequest(ctx: ScenarioRequestContext): Promise<void> {
@@ -88,23 +85,19 @@ export class Scenario {
     return this.expectationManager.onRequest(expectationManagerCtx);
   }
 
-  private async onStart(
-    def: NonNullable<ScenarioDefinition["onStart"]>,
-    ctx: StartScenarioContext
+  private async onBootstrap(
+    def: NonNullable<ScenarioDefinition["onBootstrap"]>,
+    ctx: BootstrapScenarioContext
   ): Promise<void> {
     if (def.response) {
-      await this.onStartResponse(def.response, ctx);
+      await this.onBootstrapResponse(def.response, ctx);
     }
   }
 
-  private async onStartResponse(
-    def: NonNullable<ScenarioOnStartDefinition["response"]>,
-    ctx: StartScenarioContext
+  private async onBootstrapResponse(
+    def: NonNullable<ScenarioOnBootstrapDefinition["response"]>,
+    ctx: BootstrapScenarioContext
   ): Promise<void> {
-    if (!ctx.request || !ctx.response) {
-      return;
-    }
-
     const expectationValue: ExpectationValue = {
       config: ctx.config,
       globals: ctx.globals,

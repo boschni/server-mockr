@@ -28,9 +28,7 @@ export class ScenarioManager {
   public async startScenario(
     id: string,
     config?: ConfigValue,
-    state?: StateValue,
-    request?: RequestValue,
-    response?: ResponseValue
+    state?: StateValue
   ) {
     const activeScenario = this.getActiveScenario(id);
 
@@ -47,7 +45,7 @@ export class ScenarioManager {
     const scenario = new Scenario(this.config, def);
     this.activeScenarios.push(scenario);
 
-    return scenario.start(config, state, request, response);
+    return scenario.start(config, state);
   }
 
   public stopScenario(id: string) {
@@ -60,6 +58,18 @@ export class ScenarioManager {
     scenario.stop();
 
     this.activeScenarios = this.activeScenarios.filter(x => x.id !== id);
+  }
+
+  public async bootstrapScenario(
+    id: string,
+    request: RequestValue,
+    response: ResponseValue
+  ) {
+    const activeScenario = this.getActiveScenario(id);
+
+    if (activeScenario) {
+      return activeScenario.bootstrap(request, response);
+    }
   }
 
   public resetScenario(id: string) {

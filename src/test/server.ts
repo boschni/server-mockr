@@ -21,8 +21,6 @@ Here is some description.
 Steps:
 - Goto one
 - Goto two
-
-<a href="{{globals.mockServerUrl}}/redirect-to-app" target="_blank">Redirect to app</a>
       `,
       config: {
         locale: {
@@ -37,10 +35,32 @@ Steps:
           enum: ["saved"]
         }
       },
+      onBootstrap: {
+        response: {
+          status: 301,
+          headers: {
+            Location: "{{mockServerUrl}}/{{locale}}/todos?test=a&test=b"
+          },
+          inject: [
+            {
+              into: "headers",
+              placeholder: "{{mockServerUrl}}",
+              value: {
+                selectJsonPointer: "/globals/mockServerUrl"
+              }
+            },
+            {
+              into: "headers",
+              placeholder: "{{locale}}",
+              value: {
+                selectJsonPointer: "/config/locale"
+              }
+            }
+          ]
+        }
+      },
       expectations: _ctx => {
         const expectations: ExpectationDefinition[] = [];
-
-        expectations.push(createRedirectToAppExpectation());
 
         expectations.push(createCounterExpectation());
 
@@ -122,40 +142,6 @@ Steps:
 });
 
 serverMockr.start();
-
-function createRedirectToAppExpectation(): ExpectationDefinition {
-  return {
-    match: {
-      request: {
-        path: {
-          equalTo: "/redirect-to-app"
-        }
-      }
-    },
-    response: {
-      status: 301,
-      headers: {
-        Location: "{{mockServerUrl}}/{{locale}}/todos?test=a&test=b"
-      },
-      inject: [
-        {
-          into: "headers",
-          placeholder: "{{mockServerUrl}}",
-          value: {
-            selectJsonPointer: "/globals/mockServerUrl"
-          }
-        },
-        {
-          into: "headers",
-          placeholder: "{{locale}}",
-          value: {
-            selectJsonPointer: "/config/locale"
-          }
-        }
-      ]
-    }
-  };
-}
 
 function createCounterExpectation(): ExpectationDefinition {
   let count = 0;

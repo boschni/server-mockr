@@ -9,12 +9,12 @@ export interface ScenarioDefinition {
   description?: string;
   expectations: ExpectationsDefinition;
   id: string;
-  onStart?: ScenarioOnStartDefinition;
+  onBootstrap?: ScenarioOnBootstrapDefinition;
   state?: StateDefinition;
   tags?: string[];
 }
 
-export interface ScenarioOnStartDefinition {
+export interface ScenarioOnBootstrapDefinition {
   response?: ExpectationResponseDefinition;
 }
 

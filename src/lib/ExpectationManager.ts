@@ -64,6 +64,14 @@ export class ExpectationManager {
     this.expectations.push(new Expectation(this.config, def));
   }
 
+  public getConfig(): ConfigValue {
+    return this.expectationConfig;
+  }
+
+  public getState(): StateValue {
+    return this.expectationState;
+  }
+
   public async onRequest(ctx: ExpectationManagerRequestContext): Promise<void> {
     for (const expectation of this.expectations) {
       const expectationRequestLog: ExpectationRequestLog = {

@@ -33,16 +33,12 @@ function updateScenarioStatus(id, status) {
   const statusElement = document.querySelector(
     `.scenario-table__summary-row[data-scenario-id=${id}] .scenario-table__col-status`
   );
-
-  const now = new Date();
-  const time = now.toTimeString().substr(0, 8);
-
   if (status === "started") {
-    statusElement.innerText = `Started at ${time}`;
+    statusElement.innerText = "Active";
   } else if (status === "stopped") {
-    statusElement.innerText = `Stopped at ${time}`;
+    statusElement.innerText = "Inactive";
   } else if (status === "reset") {
-    statusElement.innerText = `Reset at ${time}`;
+    statusElement.innerText = "Active";
   }
 }
 
