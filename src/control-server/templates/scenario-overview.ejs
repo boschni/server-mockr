@@ -2,13 +2,13 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Mock Server</title>
+  <title>Server Mockr</title>
   <link rel="stylesheet" href="/static/main.css">
 </head>
 <body>
 <div class="header">
   <span class="header__logo">
-    Mock Server
+    Server Mockr
   </span>
 </div>
 <div class="container">
@@ -31,13 +31,39 @@
     </thead>
     <tbody>
     <% for (const scenario of scenarios) { %>
-      <tr class="scenario-table__summary-row" data-scenario-id="<%= scenario.id %>" data-scenario-tags="<%= scenario.tags.join(', ') %>">
+      <tr class="scenario-table__summary-row" data-scenario-id="<%= scenario.id %>" data-scenario-tags="<%= scenario.tags ? scenario.tags.join(', ') : '' %>">
         <td class="scenario-table__col-id"><%= scenario.id %></td>
-        <td class="scenario-table__col-tags"><%= scenario.tags.join(", ") %></td>
-        <td class="scenario-table__col-status"></td>
+        <td class="scenario-table__col-tags"><%= scenario.tags ? scenario.tags.join(", ") : '' %></td>
+        <td class="scenario-table__col-status">
+          <%= scenarioManager.isScenarioActive(scenario.id) ? 'Active' : 'Inactive' %>
+        </td>
         <td class="scenario-table__col-actions">
-          <form class="form" action="/api/scenarios/<%= scenario.id %>/start"  data-scenario-id="<%= scenario.id %>" method="GET" target="_blank">
+          <form
+            data-scenario-start-form=""
+            data-scenario-start-form-id="<%= scenario.id %>"
+            class="form"
+            action="/api/scenarios/<%= scenario.id %>/start"
+            method="GET"
+            target="_blank">
             <button type="submit">Start</button>
+          </form>
+          <form
+            data-scenario-stop-form=""
+            data-scenario-stop-form-id="<%= scenario.id %>"
+            class="form"
+            action="/api/scenarios/<%= scenario.id %>/stop"
+            method="GET"
+            target="_blank">
+            <button type="submit">Stop</button>
+          </form>
+          <form
+            data-scenario-reset-form=""
+            data-scenario-reset-form-id="<%= scenario.id %>"
+            class="form"
+            action="/api/scenarios/<%= scenario.id %>/reset"
+            method="GET"
+            target="_blank">
+            <button type="submit">Reset</button>
           </form>
         </td>
       </tr>
@@ -50,7 +76,13 @@
 
           <% if (scenario.config) { %>
             <h2>Configuration</h2>
-            <form class="form" action="/api/scenarios/<%= scenario.id %>/start" data-scenario-id="<%= scenario.id %>" method="GET" target="_blank">
+            <form
+              data-scenario-start-form=""
+              data-scenario-start-form-id="<%= scenario.id %>"
+              class="form"
+              action="/api/scenarios/<%= scenario.id %>/start"
+              method="GET"
+              target="_blank">
               <% for ([name, config] of Object.entries(scenario.config)) { %>
                 <div class="form__field">
                   <label class="form__label" for="config_<%= name %>"><%= name  %></label>

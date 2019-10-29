@@ -32,7 +32,7 @@ export class ScenarioManager {
     request?: RequestValue,
     response?: ResponseValue
   ) {
-    const activeScenario = this.activeScenarios.find(x => x.id === id);
+    const activeScenario = this.getActiveScenario(id);
 
     if (activeScenario) {
       this.stopScenario(id);
@@ -51,7 +51,7 @@ export class ScenarioManager {
   }
 
   public stopScenario(id: string) {
-    const scenario = this.activeScenarios.find(x => x.id === id);
+    const scenario = this.getActiveScenario(id);
 
     if (!scenario) {
       return;
@@ -62,8 +62,17 @@ export class ScenarioManager {
     this.activeScenarios = this.activeScenarios.filter(x => x.id !== id);
   }
 
+  public resetScenario(id: string) {
+    this.stopScenario(id);
+    this.startScenario(id);
+  }
+
   public getScenarios() {
     return this.scenarioDefinitions;
+  }
+
+  public getActiveScenario(id: string) {
+    return this.activeScenarios.find(x => x.id === id);
   }
 
   public getActiveScenarios() {
@@ -76,6 +85,10 @@ export class ScenarioManager {
 
   public hasScenario(id: string) {
     return this.scenarioDefinitions.some(x => x.id === id);
+  }
+
+  public isScenarioActive(id: string) {
+    return this.activeScenarios.some(x => x.id === id);
   }
 
   public async onRequest(ctx: ScenarioManagerRequestContext): Promise<void> {

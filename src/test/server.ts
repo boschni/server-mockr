@@ -37,7 +37,7 @@ Steps:
           enum: ["saved"]
         }
       },
-      expectations: (_config, _state) => {
+      expectations: _ctx => {
         const expectations: ExpectationDefinition[] = [];
 
         expectations.push(createRedirectToAppExpectation());

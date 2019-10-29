@@ -83,6 +83,10 @@ h2 {
   width: 100px;
 }
 
+.scenario-table__summary-row form {
+  display: inline-block;
+}
+
 .scenario-table__summary-row:nth-of-type(4n + 2) {
   background-color: rgba(0, 0, 0, 0.05);
 }

@@ -2,7 +2,10 @@ import { Config } from "./Config";
 import { Expectation, ExpectationRequestContext } from "./Expectation";
 import { ExpectationDefinition } from "./ExpectationDefinition";
 import { ExpectationRequestLog } from "./RequestLogManager";
-import { ExpectationsDefinition } from "./ScenarioDefinition";
+import {
+  ExpectationsDefinition,
+  ExpectationsFactoryContext
+} from "./ScenarioDefinition";
 import { hasResponse } from "./valueHelpers";
 import { ConfigValue, RequestValue, ResponseValue, StateValue } from "./Values";
 
@@ -31,10 +34,12 @@ export class ExpectationManager {
     let definitions: ExpectationDefinition[];
 
     if (typeof this.expectationsDefinition === "function") {
-      definitions = this.expectationsDefinition(
-        this.expectationConfig,
-        this.expectationState
-      );
+      const ctx: ExpectationsFactoryContext = {
+        config: this.expectationConfig,
+        globals: this.config.globals,
+        state: this.expectationState
+      };
+      definitions = this.expectationsDefinition(ctx);
     } else if (Array.isArray(this.expectationsDefinition)) {
       definitions = this.expectationsDefinition;
     } else {

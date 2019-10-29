@@ -11,8 +11,8 @@ import { ConfigValue, GlobalsValue, RequestValue, StateValue } from "./Values";
 export interface ExpectationDefinition {
   afterResponse?: ExpectationAfterResponseDefinition;
   id?: string;
-  match: ExpectationMatchDefinition;
-  response: ExpectationResponseDefinition;
+  match?: ExpectationMatchDefinition;
+  response?: ExpectationResponseDefinition;
   verify?: ExpectationVerifyDefinition;
 }
 

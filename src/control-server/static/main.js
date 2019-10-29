@@ -29,15 +29,34 @@ function initScenarioRowExpanding() {
   }
 }
 
-function initScenarioStartForm(formElement) {
-  formElement.addEventListener("submit", e => {
+function updateScenarioStatus(id, status) {
+  const statusElement = document.querySelector(
+    `.scenario-table__summary-row[data-scenario-id=${id}] .scenario-table__col-status`
+  );
+
+  const now = new Date();
+  const time = now.toTimeString().substr(0, 8);
+
+  if (status === "started") {
+    statusElement.innerText = `Started at ${time}`;
+  } else if (status === "stopped") {
+    statusElement.innerText = `Stopped at ${time}`;
+  } else if (status === "reset") {
+    statusElement.innerText = `Reset at ${time}`;
+  }
+}
+
+function initScenarioStartForm(form) {
+  const id = form.getAttribute("data-scenario-start-form-id");
+  const action = form.getAttribute("action");
+
+  form.addEventListener("submit", e => {
     e.preventDefault();
 
-    const action = formElement.getAttribute("action");
     const url = new URL(action, document.location.origin);
     const searchParams = new URLSearchParams();
 
-    const formData = new FormData(formElement);
+    const formData = new FormData(form);
     for (const [key, value] of formData) {
       searchParams.append(key, value);
     }
@@ -45,20 +64,48 @@ function initScenarioStartForm(formElement) {
     url.searchParams = searchParams;
 
     fetch(url).then(() => {
-      const id = formElement.getAttribute("data-scenario-id");
-      const statusElement = document.querySelector(
-        `.scenario-table__summary-row[data-scenario-id=${id}] .scenario-table__col-status`
-      );
-      const now = new Date();
-      const time = now.toTimeString().substr(0, 8);
-      statusElement.innerText = `Started at ${time}`;
+      updateScenarioStatus(id, "started");
     });
   });
 }
 
 function initScenarioStartForms() {
-  for (const form of document.querySelectorAll("form")) {
+  for (const form of document.querySelectorAll("[data-scenario-start-form]")) {
     initScenarioStartForm(form);
+  }
+}
+
+function initScenarioStopForm(form) {
+  const id = form.getAttribute("data-scenario-stop-form-id");
+  const action = form.getAttribute("action");
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    fetch(action).then(() => {
+      updateScenarioStatus(id, "stopped");
+    });
+  });
+}
+
+function initScenarioStopForms() {
+  for (const form of document.querySelectorAll("[data-scenario-stop-form]")) {
+    initScenarioStopForm(form);
+  }
+}
+
+function initScenarioResetForm(form) {
+  const id = form.getAttribute("data-scenario-reset-form-id");
+  const action = form.getAttribute("action");
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    fetch(action).then(() => {
+      updateScenarioStatus(id, "reset");
+    });
+  });
+}
+
+function initScenarioResetForms() {
+  for (const form of document.querySelectorAll("[data-scenario-reset-form]")) {
+    initScenarioResetForm(form);
   }
 }
 
@@ -66,3 +113,5 @@ initScenarioRowExpanding();
 initScenarioFilter("id");
 initScenarioFilter("tags");
 initScenarioStartForms();
+initScenarioStopForms();
+initScenarioResetForms();

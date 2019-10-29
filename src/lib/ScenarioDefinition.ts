@@ -2,7 +2,7 @@ import {
   ExpectationDefinition,
   ExpectationResponseDefinition
 } from "./ExpectationDefinition";
-import { ConfigValue, StateValue } from "./Values";
+import { ConfigValue, GlobalsValue, StateValue } from "./Values";
 
 export interface ScenarioDefinition {
   config?: ConfigDefinition;
@@ -42,9 +42,14 @@ export interface JSONSChemaDefinitionNumber {
 }
 
 export type ExpectationsFactory = (
-  config: ConfigValue,
-  state: StateValue
+  context: ExpectationsFactoryContext
 ) => ExpectationDefinition[];
+
+export interface ExpectationsFactoryContext {
+  config: ConfigValue;
+  globals: GlobalsValue;
+  state: StateValue;
+}
 
 export type ExpectationsDefinition =
   | ExpectationDefinition[]

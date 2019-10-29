@@ -51,6 +51,8 @@ export class ControlServer {
     this.app.get("/api/scenarios", this.handleGetScenarios);
     this.app.get("/api/scenarios/:id", this.handleGetScenario);
     this.app.get("/api/scenarios/:id/start", this.handleGetStartScenario);
+    this.app.get("/api/scenarios/:id/stop", this.handleGetStopScenario);
+    this.app.get("/api/scenarios/:id/reset", this.handleGetResetScenario);
   }
 
   public start() {
@@ -94,11 +96,16 @@ export class ControlServer {
         return x;
       });
 
-      const data = { scenarios: formattedScenarios };
+      const data = {
+        scenarioManager: this.scenarioManager,
+        scenarios: formattedScenarios
+      };
+
       const template = path.join(
         __dirname,
         "./templates/scenario-overview.ejs"
       );
+
       const page = await ejs.renderFile(template, data);
       res.send(page);
     } catch (e) {
@@ -170,5 +177,35 @@ export class ControlServer {
     } else {
       res.send("server-mockr: Scenario started");
     }
+  };
+
+  /**
+   * This handler stops a specific scenario.
+   */
+  private handleGetStopScenario = async (req: Request, res: Response) => {
+    if (!this.scenarioManager.hasScenario(req.params.id)) {
+      res.status(404).send("server-mockr: Scenario not found");
+      return;
+    }
+
+    this.scenarioManager.stopScenario(req.params.id);
+
+    res.setHeader("Cache-Control", "no-cache");
+    res.send("server-mockr: Scenario stopped");
+  };
+
+  /**
+   * This handler reset a specific scenario.
+   */
+  private handleGetResetScenario = async (req: Request, res: Response) => {
+    if (!this.scenarioManager.hasScenario(req.params.id)) {
+      res.status(404).send("server-mockr: Scenario not found");
+      return;
+    }
+
+    this.scenarioManager.resetScenario(req.params.id);
+
+    res.setHeader("Cache-Control", "no-cache");
+    res.send("server-mockr: Scenario reset");
   };
 }
