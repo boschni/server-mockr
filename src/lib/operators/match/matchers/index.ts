@@ -1,4 +1,5 @@
 export * from "./allOf";
+export * from "./anyOf";
 export * from "./endsWith";
 export * from "./equalTo";
 export * from "./greaterThan";

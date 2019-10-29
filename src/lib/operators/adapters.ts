@@ -1,5 +1,6 @@
 import {
   allOf,
+  anyOf,
   endsWith,
   equalTo,
   greaterThan,
@@ -32,6 +33,13 @@ const allOfAdapter = (defs: MatchOperatorDefinition[]) => {
   return allOf(...matchers);
 };
 
+const anyOfAdapter = (defs: MatchOperatorDefinition[]) => {
+  const matchers = defs
+    .map(def => definitionToMatcher(def))
+    .filter(fn => fn) as MatchFn[];
+  return anyOf(...matchers);
+};
+
 const oneOfAdapter = (defs: MatchOperatorDefinition[]) => {
   const matchers = defs
     .map(def => definitionToMatcher(def))
@@ -60,6 +68,7 @@ const matchPipeAdapter = (
 
 export interface MatchOperatorDefinition {
   allOf?: Parameters<typeof allOfAdapter>[0];
+  anyOf?: Parameters<typeof anyOfAdapter>[0];
   endsWith?: Parameters<typeof endsWith>[0];
   equalTo?: Parameters<typeof equalTo>[0];
   greaterThan?: Parameters<typeof greaterThan>[0];
@@ -69,7 +78,7 @@ export interface MatchOperatorDefinition {
   lowerThanOrEqual?: Parameters<typeof lowerThanOrEqual>[0];
   matchObject?: Parameters<typeof matchObject>[0];
   not?: Parameters<typeof notAdapter>[0];
-  oneOf?: Parameters<typeof oneOf>[0];
+  oneOf?: Parameters<typeof oneOfAdapter>[0];
   pipe?: Parameters<typeof matchPipeAdapter>[0];
   regex?: Parameters<typeof regex>[0];
   startsWith?: Parameters<typeof startsWith>[0];
@@ -77,6 +86,7 @@ export interface MatchOperatorDefinition {
 
 const matchAdapters = {
   allOf: allOfAdapter,
+  anyOf: anyOfAdapter,
   endsWith,
   equalTo,
   greaterThan,
