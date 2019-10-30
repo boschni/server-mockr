@@ -57,7 +57,7 @@ function initScenarioStartForm(form) {
       searchParams.append(key, value);
     }
 
-    url.searchParams = searchParams;
+    url.search = searchParams.toString();
 
     fetch(url).then(() => {
       updateScenarioStatus(id, "started");
