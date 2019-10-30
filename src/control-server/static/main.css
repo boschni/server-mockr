@@ -87,7 +87,7 @@ h2 {
   display: inline-block;
 }
 
-.scenario-table__summary-row:nth-of-type(4n + 2) {
+.scenario-table__summary-row:nth-of-type(4n + 1) {
   background-color: rgba(0, 0, 0, 0.05);
 }
 
@@ -109,6 +109,8 @@ h2 {
 
 .scenario-table__details-row td {
   padding: 1em;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
 }
 
 .scenario-table__details-row.is-open {
