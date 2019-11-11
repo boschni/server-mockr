@@ -36,6 +36,10 @@ export class ScenarioManager {
       this.stopScenario(activeScenario.id);
     }
 
+    if (!this.config.multipleActiveScenarios) {
+      this.stopAllScenarios();
+    }
+
     const def = this.scenarioDefinitions.find(x => x.id === id);
 
     if (!def) {
@@ -58,6 +62,12 @@ export class ScenarioManager {
     scenario.stop();
 
     this.activeScenarios = this.activeScenarios.filter(x => x.id !== id);
+  }
+
+  public stopAllScenarios() {
+    for (const scenario of this.activeScenarios) {
+      this.stopScenario(scenario.id);
+    }
   }
 
   public async bootstrapScenario(

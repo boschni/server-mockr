@@ -9,6 +9,7 @@ export interface Config {
   expectations: ExpectationsDefinition;
   globals: GlobalsValue;
   mockServerPort: number;
+  multipleActiveScenarios: boolean;
   scenarios: ScenarioDefinition[];
 }
 
@@ -21,6 +22,7 @@ const configDefaults: ConfigDefaults = {
   expectations: [],
   globals: {},
   mockServerPort: 3002,
+  multipleActiveScenarios: false,
   scenarios: []
 };
 
