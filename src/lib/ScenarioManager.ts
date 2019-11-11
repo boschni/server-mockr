@@ -33,7 +33,7 @@ export class ScenarioManager {
     const activeScenario = this.getActiveScenario(id);
 
     if (activeScenario) {
-      this.stopScenario(id);
+      this.stopScenario(activeScenario.id);
     }
 
     const def = this.scenarioDefinitions.find(x => x.id === id);
