@@ -56,6 +56,10 @@ export class ControlServer {
       "/api/scenarios/:id/bootstrap",
       this.handleGetBootstrapScenario
     );
+    this.app.get(
+      "/api/scenarios/:id/start-and-bootstrap",
+      this.handleGetStartAndBootstrapScenario
+    );
   }
 
   public start() {
@@ -223,6 +227,34 @@ export class ControlServer {
 
     const request = incomingMessageToRequestValue(req);
     const response = createResponseValue();
+
+    response.headers["Cache-Control"] = "no-cache";
+    response.body = "server-mockr: Scenario bootstrapped";
+
+    await this.scenarioManager.bootstrapScenario(id, request, response);
+    await respondWithResponseValue(res, response);
+  };
+
+  /**
+   * This handler starts a scenario and bootstraps a client for a specific scenario.
+   */
+  private handleGetStartAndBootstrapScenario = async (
+    req: Request,
+    res: Response
+  ) => {
+    const { id } = req.params;
+
+    if (!this.scenarioManager.hasScenario(id)) {
+      res.status(404).send("server-mockr: Scenario not found");
+      return;
+    }
+
+    const request = incomingMessageToRequestValue(req);
+    const config = queryParamToObject<ConfigValue>("config", request.query);
+    const state = queryParamToObject<StateValue>("state", request.query);
+    const response = createResponseValue();
+
+    await this.scenarioManager.startScenario(id, config, state);
 
     response.headers["Cache-Control"] = "no-cache";
     response.body = "server-mockr: Scenario bootstrapped";

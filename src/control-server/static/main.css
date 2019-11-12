@@ -62,9 +62,13 @@ h2 {
   padding: 0.25em 0.5em;
 }
 
-.scenario-table__th {
+.scenario-table th {
+  background: linear-gradient(#496480, #232f3c);
+  color: #fff;
   font-weight: bold;
   vertical-align: middle;
+  padding: 0.25em 0.5em 0.4em;
+  text-align: left;
 }
 
 .scenario-table__th-id {
@@ -93,7 +97,7 @@ h2 {
 
 .scenario-table__summary-row:hover {
   cursor: pointer;
-  background-color: #f4f4f4;
+  background-color: #ccc;
 }
 
 .scenario-table__summary-row.is-id-filtered,

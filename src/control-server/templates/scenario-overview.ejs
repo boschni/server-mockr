@@ -24,10 +24,10 @@
   </div>
   <table class="scenario-table">
     <thead>
-      <td class="scenario-table__th scenario-table__th-id">ID</td>
-      <td class="scenario-table__th scenario-table__th-tags">Tags</td>
-      <td class="scenario-table__th scenario-table__th-status">Status</td>
-      <td class="scenario-table__th scenario-table__th-actions">Actions</td>
+      <th class="scenario-table__th scenario-table__th-id">ID</th>
+      <th class="scenario-table__th scenario-table__th-tags">Tags</th>
+      <th class="scenario-table__th scenario-table__th-status">Status</th>
+      <th class="scenario-table__th scenario-table__th-actions">Actions</th>
     </thead>
     <tbody>
     <% for (const scenario of scenarios) { %>
@@ -41,38 +41,42 @@
           <form
             data-scenario-start-form=""
             data-scenario-start-form-id="<%= scenario.id %>"
+            data-scenario-start-form-action="/api/scenarios/<%= scenario.id %>/start"
             class="form"
             action="/api/scenarios/<%= scenario.id %>/start"
             method="GET"
             target="_blank">
-            <button type="submit">Start</button>
+            <button data-scenario-start-button="" type="submit">Start</button>
           </form>
           <form
             data-scenario-stop-form=""
             data-scenario-stop-form-id="<%= scenario.id %>"
+            data-scenario-stop-form-action="/api/scenarios/<%= scenario.id %>/stop"
             class="form"
             action="/api/scenarios/<%= scenario.id %>/stop"
             method="GET"
             target="_blank">
-            <button type="submit">Stop</button>
+            <button data-scenario-stop-button="" type="submit">Stop</button>
           </form>
           <form
             data-scenario-reset-form=""
             data-scenario-reset-form-id="<%= scenario.id %>"
+            data-scenario-reset-form-action="/api/scenarios/<%= scenario.id %>/reset"
             class="form"
             action="/api/scenarios/<%= scenario.id %>/reset"
             method="GET"
             target="_blank">
-            <button type="submit">Reset</button>
+            <button data-scenario-reset-button="" type="submit">Reset</button>
           </form>
           <form
             data-scenario-bootstrap-form=""
             data-scenario-bootstrap-form-id="<%= scenario.id %>"
+            data-scenario-bootstrap-form-action="/api/scenarios/<%= scenario.id %>/start-and-bootstrap"
             class="form"
-            action="/api/scenarios/<%= scenario.id %>/bootstrap"
+            action="/api/scenarios/<%= scenario.id %>/start-and-bootstrap"
             method="GET"
             target="_blank">
-            <button type="submit">Bootstrap</button>
+            <button data-scenario-bootstrap-button="" type="submit">Start & Bootstrap</button>
           </form>
         </td>
       </tr>
@@ -88,8 +92,12 @@
             <form
               data-scenario-start-form=""
               data-scenario-start-form-id="<%= scenario.id %>"
+              data-scenario-start-form-action="/api/scenarios/<%= scenario.id %>/start"
+              data-scenario-bootstrap-form=""
+              data-scenario-bootstrap-form-id="<%= scenario.id %>"
+              data-scenario-bootstrap-form-action="/api/scenarios/<%= scenario.id %>/start-and-bootstrap"
               class="form"
-              action="/api/scenarios/<%= scenario.id %>/start"
+              action="/api/scenarios/<%= scenario.id %>/start-and-bootstrap"
               method="GET"
               target="_blank">
               <% for ([name, config] of Object.entries(scenario.config)) { %>
@@ -107,17 +115,8 @@
                   <% } %>
                 </div>
               <% } %>
-              <button type="submit">Start</button>
-            </form>
-            <form
-              style="margin-top: 10px;"
-              data-scenario-bootstrap-form=""
-              data-scenario-bootstrap-form-id="<%= scenario.id %>"
-              class="form"
-              action="/api/scenarios/<%= scenario.id %>/bootstrap"
-              method="GET"
-              target="_blank">
-              <button type="submit">Bootstrap</button>
+              <button data-scenario-start-button="" type="submit">Start</button>
+              <button data-scenario-bootstrap-button="" type="submit">Start & Bootstrap</button>
             </form>
           <% } %>
         </td>

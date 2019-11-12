@@ -30,9 +30,18 @@ function initScenarioRowExpanding() {
 }
 
 function updateScenarioStatus(id, status) {
+  const statusElements = document.querySelectorAll(
+    ".scenario-table__summary-row .scenario-table__col-status"
+  );
+
+  for (const el of statusElements) {
+    el.innerText = "Inactive";
+  }
+
   const statusElement = document.querySelector(
     `.scenario-table__summary-row[data-scenario-id=${id}] .scenario-table__col-status`
   );
+
   if (status === "started") {
     statusElement.innerText = "Active";
   } else if (status === "stopped") {
@@ -42,13 +51,11 @@ function updateScenarioStatus(id, status) {
   }
 }
 
-function initScenarioStartForm(form) {
-  const id = form.getAttribute("data-scenario-start-form-id");
-  const action = form.getAttribute("action");
-
-  form.addEventListener("submit", e => {
-    e.preventDefault();
-
+function initScenarioStartButton(button) {
+  button.addEventListener("click", e => {
+    const form = button.closest("form");
+    const id = form.getAttribute("data-scenario-start-form-id");
+    const action = form.getAttribute("data-scenario-start-form-action");
     const url = new URL(action, document.location.origin);
     const searchParams = new URLSearchParams();
 
@@ -59,55 +66,83 @@ function initScenarioStartForm(form) {
 
     url.search = searchParams.toString();
 
-    fetch(url).then(() => {
-      updateScenarioStatus(id, "started");
-    });
+    fetch(url)
+      .then(() => {
+        updateScenarioStatus(id, "started");
+      })
+      .catch(e => console.log(e));
+
+    // Prevent submit
+    e.preventDefault();
   });
 }
 
-function initScenarioStartForms() {
-  for (const form of document.querySelectorAll("[data-scenario-start-form]")) {
-    initScenarioStartForm(form);
+function initScenarioStartButtons() {
+  const buttons = document.querySelectorAll("[data-scenario-start-button]");
+  for (const button of buttons) {
+    initScenarioStartButton(button);
   }
 }
 
-function initScenarioStopForm(form) {
-  const id = form.getAttribute("data-scenario-stop-form-id");
-  const action = form.getAttribute("action");
-  form.addEventListener("submit", e => {
-    e.preventDefault();
-    fetch(action).then(() => {
-      updateScenarioStatus(id, "stopped");
-    });
+function initScenarioBootstrapButton(button) {
+  button.addEventListener("click", _e => {
+    const form = button.closest("form");
+    const id = form.getAttribute("data-scenario-bootstrap-form-id");
+    updateScenarioStatus(id, "started");
   });
 }
 
-function initScenarioStopForms() {
-  for (const form of document.querySelectorAll("[data-scenario-stop-form]")) {
-    initScenarioStopForm(form);
+function initScenarioBootstrapButtons() {
+  const buttons = document.querySelectorAll("[data-scenario-bootstrap-button]");
+  for (const button of buttons) {
+    initScenarioBootstrapButton(button);
   }
 }
 
-function initScenarioResetForm(form) {
-  const id = form.getAttribute("data-scenario-reset-form-id");
-  const action = form.getAttribute("action");
-  form.addEventListener("submit", e => {
+function initScenarioStopButton(button) {
+  button.addEventListener("click", e => {
+    const form = button.closest("form");
+    const id = form.getAttribute("data-scenario-stop-form-id");
+    const action = form.getAttribute("action");
+    fetch(action)
+      .then(() => {
+        updateScenarioStatus(id, "stopped");
+      })
+      .catch(e => console.log(e));
     e.preventDefault();
+  });
+}
+
+function initScenarioStopButtons() {
+  const buttons = document.querySelectorAll("[data-scenario-stop-button]");
+  for (const button of buttons) {
+    initScenarioStopButton(button);
+  }
+}
+
+function initScenarioResetButton(button) {
+  button.addEventListener("click", e => {
+    const form = button.closest("form");
+    const id = form.getAttribute("data-scenario-reset-form-id");
+    const action = form.getAttribute("action");
     fetch(action).then(() => {
       updateScenarioStatus(id, "reset");
     });
+    e.preventDefault();
   });
 }
 
-function initScenarioResetForms() {
-  for (const form of document.querySelectorAll("[data-scenario-reset-form]")) {
-    initScenarioResetForm(form);
+function initScenarioResetButtons() {
+  const buttons = document.querySelectorAll("[data-scenario-reset-button]");
+  for (const button of buttons) {
+    initScenarioResetButton(button);
   }
 }
 
 initScenarioRowExpanding();
 initScenarioFilter("id");
 initScenarioFilter("tags");
-initScenarioStartForms();
-initScenarioStopForms();
-initScenarioResetForms();
+initScenarioStartButtons();
+initScenarioBootstrapButtons();
+initScenarioStopButtons();
+initScenarioResetButtons();
