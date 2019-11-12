@@ -15,7 +15,12 @@ function initScenarioFilter(prop) {
         row.classList.add(`is-${prop}-filtered`);
       }
     }
+
+    localStorage.setItem(`${prop}-filter`, inputValue);
   });
+
+  filter.value = localStorage.getItem(`${prop}-filter`);
+  filter.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 function initScenarioRowExpanding() {
