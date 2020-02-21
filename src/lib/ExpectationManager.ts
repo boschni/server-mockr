@@ -1,13 +1,10 @@
+import { ExpectationConfigBuilder } from "./builders/expectation";
 import { Config } from "./Config";
 import { Expectation, ExpectationRequestContext } from "./Expectation";
-import { ExpectationDefinition } from "./ExpectationDefinition";
+import { Logger } from "./Logger";
 import { ExpectationRequestLog } from "./RequestLogManager";
-import {
-  ExpectationsDefinition,
-  ExpectationsFactoryContext
-} from "./ScenarioDefinition";
 import { hasResponse } from "./valueHelpers";
-import { ConfigValue, RequestValue, ResponseValue, StateValue } from "./Values";
+import { RequestValue, ResponseValue, StateValue } from "./Values";
 
 export interface ExpectationManagerRequestContext {
   expectationRequestLogs: ExpectationRequestLog[];
@@ -16,83 +13,89 @@ export interface ExpectationManagerRequestContext {
 }
 
 export class ExpectationManager {
-  public config: Config;
-  private expectationsDefinition: ExpectationsDefinition;
+  private active = false;
   private expectations: Expectation[] = [];
-  private expectationConfig: ConfigValue = {};
   private expectationState: StateValue = {};
 
-  constructor(config: Config, def: ExpectationsDefinition) {
-    this.config = config;
-    this.expectationsDefinition = def;
+  constructor(
+    private config: Config,
+    private logger: Logger,
+    builders?: ExpectationConfigBuilder[]
+  ) {
+    if (builders) {
+      this.addExpectations(builders);
+    }
   }
 
-  public start(config?: ConfigValue, state?: StateValue) {
-    this.expectationConfig = { ...config };
+  start(state?: StateValue) {
+    this.active = true;
+
     this.expectationState = { ...state };
 
-    let definitions: ExpectationDefinition[];
-
-    if (typeof this.expectationsDefinition === "function") {
-      const ctx: ExpectationsFactoryContext = {
-        config: this.expectationConfig,
-        globals: this.config.globals,
-        state: this.expectationState
-      };
-      definitions = this.expectationsDefinition(ctx);
-    } else if (Array.isArray(this.expectationsDefinition)) {
-      definitions = this.expectationsDefinition;
-    } else {
-      definitions = [this.expectationsDefinition];
-    }
-
-    for (const def of definitions) {
-      this.expectations.push(new Expectation(this.config, def));
+    for (const expectation of this.expectations) {
+      expectation.start();
     }
   }
 
-  public stop() {
-    this.expectationConfig = {};
+  stop() {
+    this.active = false;
+
     this.expectationState = {};
 
     for (const expectation of this.expectations) {
-      expectation.reset();
+      expectation.stop();
     }
   }
 
-  public addExpectation(def: ExpectationDefinition) {
-    this.expectations.push(new Expectation(this.config, def));
+  clear() {
+    this.expectationState = {};
+    this.expectations = [];
   }
 
-  public getConfig(): ConfigValue {
-    return this.expectationConfig;
+  addExpectation(builder: ExpectationConfigBuilder) {
+    const expectationConfig = builder.build();
+
+    const expectation = new Expectation(
+      this.config,
+      this.logger,
+      expectationConfig
+    );
+
+    this.expectations.push(expectation);
+
+    if (this.active) {
+      expectation.start();
+    }
   }
 
-  public getState(): StateValue {
+  addExpectations(builders: ExpectationConfigBuilder[]) {
+    for (const builder of builders) {
+      this.addExpectation(builder);
+    }
+  }
+
+  getState(): StateValue {
     return this.expectationState;
   }
 
-  public async onRequest(ctx: ExpectationManagerRequestContext): Promise<void> {
+  async onRequest(ctx: ExpectationManagerRequestContext): Promise<void> {
+    if (!this.active) {
+      return;
+    }
+
     for (const expectation of this.expectations) {
-      const expectationRequestLog: ExpectationRequestLog = {
-        id: expectation.id
-      };
-
-      ctx.expectationRequestLogs.push(expectationRequestLog);
-
       const expectationCtx: ExpectationRequestContext = {
-        config: this.expectationConfig,
-        expectationRequestLog,
+        expectationRequestLogs: ctx.expectationRequestLogs,
         globals: this.config.globals,
-        request: ctx.request,
-        response: ctx.response,
+        req: ctx.request,
+        res: ctx.response,
         state: this.expectationState,
         times: 0
       };
 
       await expectation.onRequest(expectationCtx);
 
-      if (hasResponse(expectationCtx.response)) {
+      if (hasResponse(expectationCtx.res)) {
         return;
       }
     }

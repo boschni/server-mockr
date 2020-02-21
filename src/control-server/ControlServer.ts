@@ -3,10 +3,10 @@ import cookieParser from "cookie-parser";
 import ejs from "ejs";
 import express, { Express, Request, Response } from "express";
 import { Server } from "http";
-import MarkdownIt from "markdown-it";
 import path from "path";
 
 import { Config } from "../lib/Config";
+import { Logger } from "../lib/Logger";
 import { RequestLogManager } from "../lib/RequestLogManager";
 import { ScenarioManager } from "../lib/ScenarioManager";
 import {
@@ -15,27 +15,22 @@ import {
   queryParamToObject,
   respondWithResponseValue
 } from "../lib/valueHelpers";
-import { ConfigValue, StateValue } from "../lib/Values";
+import { StateValue } from "../lib/Values";
 
 /*
  * CONTROL SERVER
  */
 
 export class ControlServer {
-  private config: Config;
   private app: Express;
-  private requestLogManager: RequestLogManager;
-  private scenarioManager: ScenarioManager;
   private server?: Server;
 
   constructor(
-    config: Config,
-    requestLogManager: RequestLogManager,
-    scenarioManager: ScenarioManager
+    private config: Config,
+    private logger: Logger,
+    private requestLogManager: RequestLogManager,
+    private scenarioManager: ScenarioManager
   ) {
-    this.config = config;
-    this.requestLogManager = requestLogManager;
-    this.scenarioManager = scenarioManager;
     this.app = express();
     this.app.use("/static", express.static(path.join(__dirname, "static")));
     this.app.use(cookieParser());
@@ -62,19 +57,23 @@ export class ControlServer {
     );
   }
 
-  public start() {
+  start() {
     this.server = this.app.listen(this.config.controlServerPort, () => {
-      // tslint:disable-next-line: no-console
-      console.log(
+      this.logger.log(
+        "info",
         `server-mockr: Control server is running at http://localhost:${this.config.controlServerPort}/`
       );
     });
   }
 
-  public stop() {
-    if (this.server) {
-      this.server.close();
-    }
+  stop() {
+    return new Promise(resolve => {
+      if (this.server) {
+        this.server.close(resolve);
+      } else {
+        resolve();
+      }
+    });
   }
 
   /**
@@ -84,28 +83,9 @@ export class ControlServer {
     try {
       const scenarios = this.scenarioManager.getScenarios();
 
-      const md = new MarkdownIt({
-        html: true
-      });
-
-      const formattedScenarios = scenarios.map(x => {
-        if (typeof x.description === "string") {
-          let description = x.description.trim();
-
-          for (const [key, value] of Object.entries(this.config.globals)) {
-            description = description.replace(`{{globals.${key}}}`, value);
-          }
-
-          description = md.render(description);
-
-          return { ...x, description };
-        }
-        return x;
-      });
-
       const data = {
         scenarioManager: this.scenarioManager,
-        scenarios: formattedScenarios
+        scenarios
       };
 
       const template = path.join(
@@ -149,7 +129,7 @@ export class ControlServer {
   private handleGetScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    if (!this.scenarioManager.hasScenario(id)) {
+    if (!this.scenarioManager.getScenario(id)) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
@@ -165,16 +145,15 @@ export class ControlServer {
   private handleGetStartScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    if (!this.scenarioManager.hasScenario(id)) {
+    if (!this.scenarioManager.getScenario(id)) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
 
     const request = incomingMessageToRequestValue(req);
-    const config = queryParamToObject<ConfigValue>("config", request.query);
     const state = queryParamToObject<StateValue>("state", request.query);
 
-    await this.scenarioManager.startScenario(id, config, state);
+    await this.scenarioManager.startScenario(id, state);
 
     res.setHeader("Cache-Control", "no-cache");
     res.send("server-mockr: Scenario started");
@@ -186,7 +165,7 @@ export class ControlServer {
   private handleGetStopScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    if (!this.scenarioManager.hasScenario(id)) {
+    if (!this.scenarioManager.getScenario(id)) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
@@ -203,7 +182,7 @@ export class ControlServer {
   private handleGetResetScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    if (!this.scenarioManager.hasScenario(id)) {
+    if (!this.scenarioManager.getScenario(id)) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
@@ -220,7 +199,9 @@ export class ControlServer {
   private handleGetBootstrapScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    if (!this.scenarioManager.hasScenario(id)) {
+    const scenario = this.scenarioManager.getScenario(id);
+
+    if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
@@ -231,7 +212,7 @@ export class ControlServer {
     response.headers["Cache-Control"] = "no-cache";
     response.body = "server-mockr: Scenario bootstrapped";
 
-    await this.scenarioManager.bootstrapScenario(id, request, response);
+    await scenario.bootstrap(request, response);
     await respondWithResponseValue(res, response);
   };
 
@@ -244,22 +225,23 @@ export class ControlServer {
   ) => {
     const { id } = req.params;
 
-    if (!this.scenarioManager.hasScenario(id)) {
+    const scenario = this.scenarioManager.getScenario(id);
+
+    if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
 
     const request = incomingMessageToRequestValue(req);
-    const config = queryParamToObject<ConfigValue>("config", request.query);
     const state = queryParamToObject<StateValue>("state", request.query);
     const response = createResponseValue();
 
-    await this.scenarioManager.startScenario(id, config, state);
+    await this.scenarioManager.startScenario(id, state);
 
     response.headers["Cache-Control"] = "no-cache";
     response.body = "server-mockr: Scenario bootstrapped";
 
-    await this.scenarioManager.bootstrapScenario(id, request, response);
+    await scenario.bootstrap(request, response);
     await respondWithResponseValue(res, response);
   };
 }

@@ -1,39 +1,102 @@
-import { applyAfterResponseBehaviours } from "./behaviours/afterResponseBehaviour";
-import { applyResponseBehaviours } from "./behaviours/responseBehaviour";
+import { Action } from "./actions/Action";
+import { ResponseConfigBuilder } from "./builders/response";
 import { Config } from "./Config";
-import { ExpectationDefinition } from "./ExpectationDefinition";
-import { definitionToMatcher } from "./operators/adapters";
-import { isPassed, MatchResult } from "./operators/match/MatchOperator";
+import { ContextMatcher, request } from "./context-matchers";
+import { Logger } from "./Logger";
 import { ExpectationRequestLog } from "./RequestLogManager";
+import { RespondAction } from "./response-actions";
+import { isMatchResult, isPassed, MatchResult } from "./value-matchers/MatchFn";
 import { hasResponse } from "./valueHelpers";
 import { ExpectationValue } from "./Values";
 
+/*
+ * TYPES
+ */
+
+export type RespondInput =
+  | ResponseConfigBuilder
+  | RespondFactory
+  | string
+  | object;
+
+type RespondFactory = (
+  ctx: ExpectationValue
+) => ResponseConfigBuilder | string | object;
+
+export type ContextMatcherInput =
+  | ContextMatcher
+  | ContextMatcherFactory
+  | string;
+
+type ContextMatcherFactory = (
+  ctx: ExpectationValue
+) => MatchResult | ContextMatcher;
+
+export type ActionInput = Action | ActionFn;
+type ActionFn = (ctx: ExpectationRequestContext) => Action | void;
+
 export interface ExpectationRequestContext extends ExpectationValue {
-  expectationRequestLog: ExpectationRequestLog;
+  expectationRequestLogs: ExpectationRequestLog[];
 }
+
+export interface ExpectationConfig {
+  afterResponseActions: ActionInput[];
+  id?: string;
+  respondInput?: RespondInput;
+  verifyMatchers: ContextMatcherInput[];
+  whenMatchers: ContextMatcherInput[];
+}
+
+/*
+ * EXPECTATION
+ */
 
 export class Expectation {
   private static id = 0;
-  public id: string | number;
-
-  protected config: Config;
-  private definition: ExpectationDefinition;
+  private active = false;
+  private id: string | number;
   private timesMatched = 0;
 
-  constructor(config: Config, definition: ExpectationDefinition) {
-    this.config = config;
-    this.definition = definition;
-    this.id = this.definition.id || ++Expectation.id;
+  constructor(
+    protected config: Config,
+    private logger: Logger,
+    private expectationConfig: ExpectationConfig
+  ) {
+    this.id = this.expectationConfig.id || ++Expectation.id;
   }
 
-  public async onRequest(ctx: ExpectationRequestContext): Promise<void> {
-    const def = this.definition;
+  start() {
+    this.active = true;
+  }
+
+  stop() {
+    this.active = false;
+    this.timesMatched = 0;
+  }
+
+  async onRequest(ctx: ExpectationRequestContext): Promise<void> {
+    if (!this.active) {
+      return;
+    }
+
+    const {
+      afterResponseActions,
+      respondInput: respondAction,
+      whenMatchers,
+      verifyMatchers
+    } = this.expectationConfig;
+
+    const log: ExpectationRequestLog = {
+      id: this.id
+    };
+
+    ctx.expectationRequestLogs.push(log);
 
     ctx.times = this.timesMatched;
 
-    const matchResult = await this.match(def.match, ctx);
+    const matchResult = await this.when(whenMatchers, ctx);
 
-    ctx.expectationRequestLog.matchResult = matchResult;
+    log.matchResult = matchResult;
 
     if (!isPassed(matchResult)) {
       return;
@@ -41,117 +104,56 @@ export class Expectation {
 
     this.timesMatched++;
 
-    if (def.verify) {
-      const verifyResult = await this.verify(def.verify, ctx);
-      ctx.expectationRequestLog.verifyResult = verifyResult;
+    if (verifyMatchers) {
+      const verifyResult = await this.verify(verifyMatchers, ctx);
+      log.verifyResult = verifyResult;
     }
 
-    if (def.response && !hasResponse(ctx.response)) {
-      await this.response(def.response, ctx);
+    if (respondAction && !hasResponse(ctx.res)) {
+      await this.response(respondAction, ctx);
     }
 
-    if (def.afterResponse) {
-      await this.afterResponse(def.afterResponse, ctx);
-    }
-  }
-
-  public reset() {
-    this.timesMatched = 0;
+    await this.afterResponse(afterResponseActions, ctx);
   }
 
   private async verify(
-    def: NonNullable<ExpectationDefinition["verify"]>,
+    matcherValues: ContextMatcherInput[],
     ctx: ExpectationRequestContext
   ): Promise<MatchResult> {
-    const result = await this.match(def, ctx);
+    const result = await this.when(matcherValues, ctx);
 
     if (!isPassed(result)) {
-      // tslint:disable-next-line: no-console
-      console.log("Verify failed because:");
-      // tslint:disable-next-line: no-console
-      console.log(result);
-      ctx.response.status = 400;
-      ctx.response.headers["Content-Type"] = "application/json";
-      ctx.response.body = JSON.stringify(result);
+      this.logger.log("info", "Verify failed because:");
+      this.logger.log("info", result);
+      ctx.res.status = 400;
+      ctx.res.headers["Content-Type"] = "application/json";
+      ctx.res.body = JSON.stringify(result);
     }
 
     return result;
   }
 
-  private async match(
-    def: ExpectationDefinition["match"],
+  private async when(
+    values: ContextMatcherInput[],
     ctx: ExpectationRequestContext
   ): Promise<MatchResult> {
     let result: MatchResult = true;
 
-    if (!def) {
+    if (!values.length) {
       return result;
     }
 
-    if (def.globals) {
-      result = this.matchValue(def.globals, ctx.globals);
-      if (!isPassed(result)) {
-        return result;
-      }
-    }
+    for (const value of values) {
+      const output = typeof value === "function" ? value(ctx) : value;
 
-    if (def.config) {
-      result = this.matchValue(def.config, ctx.config);
-      if (!isPassed(result)) {
-        return result;
-      }
-    }
-
-    if (def.state) {
-      result = this.matchValue(def.state, ctx.state);
-      if (!isPassed(result)) {
-        return result;
-      }
-    }
-
-    if (def.times !== undefined) {
-      result = this.matchValue(def.times, ctx.times);
-      if (!isPassed(result)) {
-        return result;
-      }
-    }
-
-    if (def.request) {
-      if (typeof def.request === "function") {
-        return def.request(ctx.request);
+      if (isMatchResult(output)) {
+        result = output;
+      } else if (typeof output === "string") {
+        result = request(output).match(ctx);
+      } else {
+        result = output.match(ctx);
       }
 
-      result = this.matchValue(def.request.path, ctx.request.path);
-      if (!isPassed(result)) {
-        return result;
-      }
-
-      result = this.matchValue(def.request.url, ctx.request.url);
-      if (!isPassed(result)) {
-        return result;
-      }
-
-      result = this.matchValue(def.request.method, ctx.request.method);
-      if (!isPassed(result)) {
-        return result;
-      }
-
-      result = this.matchValue(def.request.query, ctx.request.query);
-      if (!isPassed(result)) {
-        return result;
-      }
-
-      result = this.matchValue(def.request.headers, ctx.request.headers);
-      if (!isPassed(result)) {
-        return result;
-      }
-
-      result = this.matchValue(def.request.cookies, ctx.request.cookies);
-      if (!isPassed(result)) {
-        return result;
-      }
-
-      result = this.matchValue(def.request.body, ctx.request.body);
       if (!isPassed(result)) {
         return result;
       }
@@ -160,28 +162,30 @@ export class Expectation {
     return result;
   }
 
-  private matchValue(def: any, value: any): MatchResult {
-    if (!def) {
-      return true;
-    } else if (typeof def === "function") {
-      return def(value);
-    } else {
-      const matcher = definitionToMatcher(def);
-      return matcher ? matcher(value) : false;
+  private async response(
+    value: RespondInput,
+    ctx: ExpectationRequestContext
+  ): Promise<void> {
+    value = typeof value === "function" ? value(ctx) : value;
+
+    if (!(value instanceof ResponseConfigBuilder)) {
+      value = new ResponseConfigBuilder(value);
     }
+
+    const config = (value as ResponseConfigBuilder).build();
+    const action = new RespondAction(config);
+    await action.execute(ctx);
   }
 
   private async afterResponse(
-    def: NonNullable<ExpectationDefinition["afterResponse"]>,
+    values: ActionInput[],
     ctx: ExpectationRequestContext
   ): Promise<void> {
-    await applyAfterResponseBehaviours(def, ctx);
-  }
-
-  private async response(
-    def: NonNullable<ExpectationDefinition["response"]>,
-    ctx: ExpectationRequestContext
-  ): Promise<void> {
-    await applyResponseBehaviours(def, ctx);
+    for (const value of values) {
+      const action = typeof value === "function" ? value(ctx) : value;
+      if (action) {
+        await action.execute(ctx);
+      }
+    }
   }
 }

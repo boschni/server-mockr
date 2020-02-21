@@ -1,112 +1,206 @@
-import { applyResponseBehaviours } from "./behaviours/responseBehaviour";
+import MarkdownIt from "markdown-it";
+
+import { ExpectationConfigBuilder } from "./builders/expectation";
+import { ResponseConfigBuilder } from "./builders/response";
 import { Config } from "./Config";
+import { ContextMatcherInput, ExpectationRequestContext } from "./Expectation";
 import {
   ExpectationManager,
   ExpectationManagerRequestContext
 } from "./ExpectationManager";
+import { Logger } from "./Logger";
 import { ScenarioRequestLog } from "./RequestLogManager";
+import { RespondAction } from "./response-actions";
+import { clone } from "./utils/clone";
+import { createDefaultedState } from "./valueHelpers";
 import {
-  ScenarioDefinition,
-  ScenarioOnBootstrapDefinition
-} from "./ScenarioDefinition";
-import { createDefaultedConfig, createDefaultedState } from "./valueHelpers";
-import {
-  ConfigValue,
-  ExpectationValue,
   GlobalsValue,
+  JSONSchemaParam,
   RequestValue,
   ResponseValue,
   StateValue
 } from "./Values";
 
 export interface ScenarioRequestContext {
-  scenarioRequestLog: ScenarioRequestLog;
+  scenarioRequestLogs: ScenarioRequestLog[];
   request: RequestValue;
   response: ResponseValue;
 }
 
-interface BootstrapScenarioContext {
-  config: ConfigValue;
+interface OnBootstrapScenarioContext {
   globals: GlobalsValue;
-  request: RequestValue;
-  response: ResponseValue;
+  req: RequestValue;
+  res: ResponseValue;
   state: StateValue;
 }
 
+interface OnStartScenarioContext {
+  globals: GlobalsValue;
+  state: StateValue;
+  when: (...matchers: ContextMatcherInput[]) => ExpectationConfigBuilder;
+}
+
+export interface ScenarioConfig {
+  stateParams: JSONSchemaParam[];
+  description: string;
+  expectationBuilders: ExpectationConfigBuilder[];
+  id: string;
+  onBootstrap?: OnBootstrapCallback;
+  onStart?: OnStartCallback;
+  tags: string[];
+}
+
+export type OnBootstrapCallback = (
+  ctx: OnBootstrapScenarioContext
+) => ResponseConfigBuilder | void;
+export type OnStartCallback = (ctx: OnStartScenarioContext) => void;
+
+const md = new MarkdownIt({
+  html: true
+});
+
 export class Scenario {
-  public id: string;
+  private active = false;
+  private expectationManager?: ExpectationManager;
 
-  private config: Config;
-  private definition: ScenarioDefinition;
-  private expectationManager: ExpectationManager;
+  constructor(private config: Config, private logger: Logger, private scenarioConfig: ScenarioConfig) {}
 
-  constructor(config: Config, def: ScenarioDefinition) {
-    this.config = config;
-    this.id = def.id;
-    this.definition = def;
-    this.expectationManager = new ExpectationManager(
+  async start(state?: StateValue) {
+    this.active = true;
+
+    const expectationManager = new ExpectationManager(
       this.config,
-      def.expectations
+      this.logger,
+      this.scenarioConfig.expectationBuilders
     );
-  }
 
-  public async start(config?: ConfigValue, state?: StateValue) {
-    const def = this.definition;
-    const defaultedConfig = createDefaultedConfig(config, def.config);
-    const defaultedState = createDefaultedState(state, def.state);
-    this.expectationManager.start(defaultedConfig, defaultedState);
-  }
+    this.expectationManager = expectationManager;
 
-  public stop() {
-    this.expectationManager.stop();
-  }
+    const { stateParams, onStart } = this.scenarioConfig;
 
-  public async bootstrap(request: RequestValue, response: ResponseValue) {
-    const def = this.definition;
+    const defaultedState = createDefaultedState(state, stateParams);
 
-    if (def.onBootstrap) {
-      const ctx: BootstrapScenarioContext = {
-        config: this.expectationManager.getConfig(),
+    if (onStart) {
+      const ctx: OnStartScenarioContext = {
         globals: this.config.globals,
-        request,
-        response,
-        state: this.expectationManager.getState()
+        state: defaultedState,
+        when: (...matchers: ContextMatcherInput[]) => {
+          const builder = new ExpectationConfigBuilder(...matchers);
+          expectationManager.addExpectation(builder);
+          return builder;
+        }
       };
-      await this.onBootstrap(def.onBootstrap, ctx);
+
+      onStart(ctx);
     }
+
+    expectationManager.start(defaultedState);
   }
 
-  public async onRequest(ctx: ScenarioRequestContext): Promise<void> {
-    const expectationManagerCtx: ExpectationManagerRequestContext = {
-      expectationRequestLogs: ctx.scenarioRequestLog.expectations,
-      request: ctx.request,
-      response: ctx.response
+  stop() {
+    if (!this.active || !this.expectationManager) {
+      return;
+    }
+
+    this.active = false;
+    this.expectationManager.stop();
+    this.expectationManager = undefined;
+  }
+
+  async bootstrap(req: RequestValue, res: ResponseValue) {
+    if (!this.active || !this.expectationManager) {
+      return;
+    }
+
+    const onBootstrap = this.scenarioConfig.onBootstrap;
+
+    if (!onBootstrap) {
+      return;
+    }
+
+    const ctx: OnBootstrapScenarioContext = {
+      globals: this.config.globals,
+      req,
+      res,
+      state: this.expectationManager.getState()
     };
-    return this.expectationManager.onRequest(expectationManagerCtx);
-  }
 
-  private async onBootstrap(
-    def: NonNullable<ScenarioDefinition["onBootstrap"]>,
-    ctx: BootstrapScenarioContext
-  ): Promise<void> {
-    if (def.response) {
-      await this.onBootstrapResponse(def.response, ctx);
+    const responseConfigBuilder = onBootstrap(ctx);
+
+    if (!responseConfigBuilder) {
+      return;
     }
-  }
 
-  private async onBootstrapResponse(
-    def: NonNullable<ScenarioOnBootstrapDefinition["response"]>,
-    ctx: BootstrapScenarioContext
-  ): Promise<void> {
-    const expectationValue: ExpectationValue = {
-      config: ctx.config,
+    const expectationValue: ExpectationRequestContext = {
+      expectationRequestLogs: [],
       globals: ctx.globals,
-      request: ctx.request,
-      response: ctx.response,
+      req: ctx.req,
+      res: ctx.res,
       state: ctx.state,
       times: 1
     };
 
-    await applyResponseBehaviours(def, expectationValue);
+    const config = responseConfigBuilder.build();
+    const action = new RespondAction(config);
+    await action.execute(expectationValue);
+  }
+
+  async onRequest(ctx: ScenarioRequestContext): Promise<void> {
+    if (!this.active || !this.expectationManager) {
+      return;
+    }
+
+    const scenarioRequestLog: ScenarioRequestLog = {
+      expectations: [],
+      id: this.scenarioConfig.id,
+      state: clone(this.getState())
+    };
+
+    ctx.scenarioRequestLogs.push(scenarioRequestLog);
+
+    const expectationManagerCtx: ExpectationManagerRequestContext = {
+      expectationRequestLogs: scenarioRequestLog.expectations,
+      request: ctx.request,
+      response: ctx.response
+    };
+
+    return this.expectationManager.onRequest(expectationManagerCtx);
+  }
+
+  getId(): string {
+    return this.scenarioConfig.id;
+  }
+
+  getDescription(): string {
+    return this.scenarioConfig.description;
+  }
+
+  getFormattedDescription(): string {
+    let description = this.getDescription().trim();
+    if (typeof description === "string") {
+      for (const [key, value] of Object.entries(this.config.globals)) {
+        description = description.replace(`{{globals.${key}}}`, value);
+      }
+
+      description = md.render(description);
+    }
+
+    return description;
+  }
+
+  getTags(): string[] {
+    return this.scenarioConfig.tags;
+  }
+
+  getVisibleStateParams(): JSONSchemaParam[] {
+    return this.scenarioConfig.stateParams.filter(x => !x.schema.hidden);
+  }
+
+  getState(): StateValue {
+    return this.expectationManager?.getState() ?? {};
+  }
+
+  isActive(): boolean {
+    return this.active;
   }
 }

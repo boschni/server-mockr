@@ -8,6 +8,7 @@ import {
   ExpectationManager,
   ExpectationManagerRequestContext
 } from "./ExpectationManager";
+import { Logger } from "./Logger";
 import { RequestLogManager } from "./RequestLogManager";
 import {
   ScenarioManager,
@@ -21,25 +22,17 @@ import {
 } from "./valueHelpers";
 
 export class ServerManager {
-  protected config: Config;
   private servers: Server[] = [];
-  private requestLogManager: RequestLogManager;
-  private globalExpectationManager: ExpectationManager;
-  private scenarioManager: ScenarioManager;
 
   constructor(
-    config: Config,
-    requestLogManager: RequestLogManager,
-    globalExpectationManager: ExpectationManager,
-    scenarioManager: ScenarioManager
-  ) {
-    this.config = config;
-    this.requestLogManager = requestLogManager;
-    this.globalExpectationManager = globalExpectationManager;
-    this.scenarioManager = scenarioManager;
-  }
+    protected config: Config,
+    private logger: Logger,
+    private requestLogManager: RequestLogManager,
+    private globalExpectationManager: ExpectationManager,
+    private scenarioManager: ScenarioManager
+  ) {}
 
-  public startServer(port: number) {
+  startServer(port: number) {
     const app = express();
     app.use(cookieParser());
     app.use(bodyParser.json());
@@ -53,18 +46,25 @@ export class ServerManager {
     const server = createServer(app);
     server.listen(port);
 
-    // tslint:disable-next-line: no-console
-    console.log(
+    this.logger.log(
+      "info",
       `server-mockr: Mocked server is running at http://localhost:${port}/`
     );
 
     this.servers.push(server);
   }
 
-  public stop() {
+  stop() {
+    const promises = [];
+
     for (const server of this.servers) {
-      server.close();
+      const promise = new Promise(resolve => {
+        server.close(resolve);
+      });
+      promises.push(promise);
     }
+
+    return Promise.all(promises);
   }
 
   private onRequest = async (req: IncomingMessage, res: ServerResponse) => {

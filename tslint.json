@@ -7,6 +7,9 @@
   "rules": {
     "interface-name": false,
     "no-empty-interface": false,
-    "variable-name": false
+    "variable-name": false,
+    "object-literal-sort-keys": false,
+    "unified-signatures": false,
+    "member-access": false
   }
 }

@@ -1,10 +1,9 @@
 import { IncomingMessage, ServerResponse } from "http";
 import url from "url";
 
-import { ConfigDefinition, StateDefinition } from "./ScenarioDefinition";
 import {
-  ConfigValue,
   GlobalsValue,
+  JSONSchemaParam,
   QueryValue,
   RequestValue,
   ResponseValue,
@@ -25,6 +24,7 @@ export const incomingMessageToRequestValue = (
     cookies: (req as any).cookies,
     headers: req.headers,
     method: req.method as any,
+    params: {},
     path: parsedUrl.pathname!,
     query: parsedUrl.query,
     url: req.url!
@@ -76,30 +76,15 @@ export const createDefaultedGlobals = (providedGlobals?: GlobalsValue) => {
   return { ...globalsDefaults, ...providedGlobals };
 };
 
-export const createDefaultedConfig = (
-  providedConfig?: ConfigValue,
-  configDef?: ConfigDefinition
-) => {
-  const configDefaults: ConfigValue = {};
-
-  if (configDef) {
-    for (const [name, schema] of Object.entries(configDef)) {
-      configDefaults[name] = schema.default;
-    }
-  }
-
-  return { ...configDefaults, ...providedConfig };
-};
-
 export const createDefaultedState = (
   providedState?: StateValue,
-  stateDef?: StateDefinition
+  stateParams?: JSONSchemaParam[]
 ) => {
   const stateDefaults: StateValue = {};
 
-  if (stateDef) {
-    for (const [name, schema] of Object.entries(stateDef)) {
-      stateDefaults[name] = schema.default;
+  if (stateParams) {
+    for (const param of stateParams) {
+      stateDefaults[param.name] = param.schema.default;
     }
   }
 

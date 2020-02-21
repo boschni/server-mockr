@@ -1,12 +1,14 @@
 import { ControlServer } from "../control-server/ControlServer";
+import { ExpectationConfigBuilder } from "./builders/expectation";
+import { ScenarioConfigBuilder } from "./builders/scenario";
 import { Config, createConfig, InitialConfig } from "./Config";
-import { ExpectationDefinition } from "./ExpectationDefinition";
+import { ContextMatcherInput } from "./Expectation";
 import { ExpectationManager } from "./ExpectationManager";
+import { Logger } from "./Logger";
 import { RequestLogManager } from "./RequestLogManager";
-import { ScenarioDefinition } from "./ScenarioDefinition";
 import { ScenarioManager } from "./ScenarioManager";
 import { ServerManager } from "./ServerManager";
-import { ConfigValue, StateValue } from "./Values";
+import { StateValue } from "./Values";
 
 /*
  * SERVER SETUP
@@ -14,6 +16,7 @@ import { ConfigValue, StateValue } from "./Values";
 
 export class ServerMockr {
   private config: Config;
+  private logger: Logger;
   private controlServer: ControlServer;
   private globalExpectationManager: ExpectationManager;
   private scenarioManager: ScenarioManager;
@@ -23,20 +26,20 @@ export class ServerMockr {
   constructor(config?: InitialConfig) {
     this.config = createConfig(config);
 
+    this.logger = new Logger(this.config.logLevel);
+
     this.requestLogManager = new RequestLogManager(this.config);
 
     this.globalExpectationManager = new ExpectationManager(
       this.config,
-      this.config.expectations
+      this.logger
     );
 
-    this.scenarioManager = new ScenarioManager(
-      this.config,
-      this.config.scenarios
-    );
+    this.scenarioManager = new ScenarioManager(this.config, this.logger);
 
     this.serverManager = new ServerManager(
       this.config,
+      this.logger,
       this.requestLogManager,
       this.globalExpectationManager,
       this.scenarioManager
@@ -44,31 +47,58 @@ export class ServerMockr {
 
     this.controlServer = new ControlServer(
       this.config,
+      this.logger,
       this.requestLogManager,
       this.scenarioManager
     );
   }
 
-  public addExpectation(def: ExpectationDefinition) {
-    this.globalExpectationManager.addExpectation(def);
+  when(...matchers: ContextMatcherInput[]): ExpectationConfigBuilder {
+    const builder = new ExpectationConfigBuilder(...matchers);
+    this.globalExpectationManager.addExpectation(builder);
+    return builder;
   }
 
-  public addScenario(def: ScenarioDefinition) {
-    this.scenarioManager.addScenario(def);
+  scenario(id: string) {
+    const builder = new ScenarioConfigBuilder(id);
+    this.scenarioManager.addScenario(builder);
+    return builder;
   }
 
-  public startScenario(id: string, config?: ConfigValue, state?: StateValue) {
-    this.scenarioManager.startScenario(id, config, state);
+  addExpectation(builder: ExpectationConfigBuilder) {
+    this.globalExpectationManager.addExpectation(builder);
   }
 
-  public start() {
+  addScenario(builder: ScenarioConfigBuilder) {
+    this.scenarioManager.addScenario(builder);
+  }
+
+  startScenario(id: string, state?: StateValue) {
+    this.scenarioManager.startScenario(id, state);
+  }
+
+  stopScenario(id: string) {
+    this.scenarioManager.stopScenario(id);
+  }
+
+  start() {
     this.controlServer.start();
-    // TEMP
+    // TEMP, multiple servers on different ports?
     this.serverManager.startServer(this.config.mockServerPort);
+    this.globalExpectationManager.start();
+    this.scenarioManager.start();
   }
 
-  public stop() {
-    this.controlServer.stop();
-    this.serverManager.stop();
+  async stop() {
+    this.globalExpectationManager.stop();
+    this.scenarioManager.stop();
+    await this.controlServer.stop();
+    await this.serverManager.stop();
+  }
+
+  clear() {
+    this.requestLogManager.clear();
+    this.globalExpectationManager.clear();
+    this.scenarioManager.clear();
   }
 }

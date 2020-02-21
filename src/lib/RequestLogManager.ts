@@ -1,6 +1,6 @@
 import { Config } from "./Config";
-import { MatchResult } from "./operators/match/MatchOperator";
-import { RequestValue, ResponseValue } from "./Values";
+import { MatchResult } from "./value-matchers/MatchFn";
+import { RequestValue, ResponseValue, StateValue } from "./Values";
 
 export interface RequestLog {
   date: string;
@@ -14,6 +14,7 @@ export interface RequestLog {
 export interface ScenarioRequestLog {
   expectations: ExpectationRequestLog[];
   id: string | number;
+  state: StateValue;
 }
 
 export interface ExpectationRequestLog {
@@ -25,14 +26,11 @@ export interface ExpectationRequestLog {
 export class RequestLogManager {
   private static id = 0;
 
-  protected config: Config;
   private logs: RequestLog[] = [];
 
-  constructor(config: Config) {
-    this.config = config;
-  }
+  constructor(protected config: Config) {}
 
-  public log(request: RequestValue): RequestLog {
+  log(request: RequestValue): RequestLog {
     const log: RequestLog = {
       date: new Date().toISOString(),
       expectations: [],
@@ -46,7 +44,12 @@ export class RequestLogManager {
     return log;
   }
 
-  public getLogs(): RequestLog[] {
+  clear() {
+    this.logs = [];
+    RequestLogManager.id = 0;
+  }
+
+  getLogs(): RequestLog[] {
     return this.logs;
   }
 }

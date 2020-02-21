@@ -54,11 +54,19 @@ export interface CookiesValue {
 }
 
 /*
- * QUERY  VALUE
+ * QUERY VALUE
  */
 
 export interface QueryValue {
   [name: string]: string | string[];
+}
+
+/*
+ * PARAMS VALUE
+ */
+
+export interface ParamsValue {
+  [name: string]: string;
 }
 
 /*
@@ -70,6 +78,7 @@ export interface RequestValue {
   cookies: CookiesValue;
   headers: HeadersValue;
   method: MethodValue;
+  params: ParamsValue;
   path: PathValue;
   query: QueryValue;
   url: UrlValue;
@@ -82,19 +91,11 @@ export interface RequestValue {
 export type TimesValue = number;
 
 /*
- * CONFIG VALUE
- */
-
-export interface ConfigValue {
-  [name: string]: string | undefined;
-}
-
-/*
  * STATE VALUE
  */
 
 export interface StateValue {
-  [name: string]: string | undefined;
+  [name: string]: any;
 }
 
 /*
@@ -120,10 +121,48 @@ export interface ResponseValue {
  */
 
 export interface ExpectationValue {
-  config: ConfigValue;
   globals: GlobalsValue;
-  request: RequestValue;
-  response: ResponseValue;
+  req: RequestValue;
+  res: ResponseValue;
   state: StateValue;
   times: TimesValue;
+}
+
+/*
+ * JSON VALUE
+ */
+
+export type JSONValue =
+  | null
+  | undefined
+  | boolean
+  | number
+  | string
+  | JSONValue[]
+  | { [prop: string]: JSONValue };
+
+/*
+ * SCHEMA
+ */
+
+export interface JSONSchemaParam {
+  name: string;
+  schema: JSONSchemaDefinition;
+}
+
+export type JSONSchemaDefinition =
+  | JSONSchemaDefinitionString
+  | JSONSChemaDefinitionNumber;
+
+export interface JSONSchemaDefinitionString {
+  type: "string";
+  enum?: string[];
+  default?: string;
+  hidden?: boolean;
+}
+
+export interface JSONSChemaDefinitionNumber {
+  type: "number";
+  default?: string;
+  hidden?: boolean;
 }

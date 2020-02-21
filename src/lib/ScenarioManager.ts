@@ -1,9 +1,10 @@
+import { ScenarioConfigBuilder } from "./builders/scenario";
 import { Config } from "./Config";
+import { Logger } from "./Logger";
 import { ScenarioRequestLog } from "./RequestLogManager";
 import { Scenario, ScenarioRequestContext } from "./Scenario";
-import { ScenarioDefinition } from "./ScenarioDefinition";
 import { hasResponse } from "./valueHelpers";
-import { ConfigValue, RequestValue, ResponseValue, StateValue } from "./Values";
+import { RequestValue, ResponseValue, StateValue } from "./Values";
 
 export interface ScenarioManagerRequestContext {
   scenarioRequestLogs: ScenarioRequestLog[];
@@ -12,118 +13,84 @@ export interface ScenarioManagerRequestContext {
 }
 
 export class ScenarioManager {
-  protected config: Config;
-  private activeScenarios: Scenario[] = [];
-  private scenarioDefinitions: ScenarioDefinition[] = [];
+  private scenarios: Scenario[] = [];
+  private active = false;
 
-  constructor(config: Config, defs: ScenarioDefinition[]) {
-    this.config = config;
-    this.scenarioDefinitions = defs;
+  constructor(private config: Config, private logger: Logger) {}
+
+  start() {
+    this.active = true;
   }
 
-  public addScenario(def: ScenarioDefinition) {
-    this.scenarioDefinitions.push(def);
+  stop() {
+    this.active = false;
+    this.stopScenarios();
   }
 
-  public async startScenario(
-    id: string,
-    config?: ConfigValue,
-    state?: StateValue
-  ) {
-    const activeScenario = this.getActiveScenario(id);
-
-    if (activeScenario) {
-      this.stopScenario(activeScenario.id);
-    }
-
-    if (!this.config.multipleActiveScenarios) {
-      this.stopAllScenarios();
-    }
-
-    const def = this.scenarioDefinitions.find(x => x.id === id);
-
-    if (!def) {
-      return;
-    }
-
-    const scenario = new Scenario(this.config, def);
-    this.activeScenarios.push(scenario);
-
-    return scenario.start(config, state);
+  clear() {
+    this.scenarios = [];
   }
 
-  public stopScenario(id: string) {
-    const scenario = this.getActiveScenario(id);
+  addScenario(builder: ScenarioConfigBuilder) {
+    const scenarioConfig = builder.build();
+    const scenario = new Scenario(this.config, this.logger, scenarioConfig);
+    this.scenarios.push(scenario);
+  }
+
+  async startScenario(id: string, state?: StateValue) {
+    const scenario = this.getScenario(id);
 
     if (!scenario) {
       return;
     }
 
-    scenario.stop();
+    if (!this.config.multipleActiveScenarios) {
+      this.stopScenarios();
+    }
 
-    this.activeScenarios = this.activeScenarios.filter(x => x.id !== id);
+    if (scenario.isActive()) {
+      scenario.stop();
+    }
+
+    return scenario.start(state);
   }
 
-  public stopAllScenarios() {
-    for (const scenario of this.activeScenarios) {
-      this.stopScenario(scenario.id);
+  stopScenario(id: string) {
+    const scenario = this.getScenario(id);
+    if (scenario && scenario.isActive()) {
+      scenario.stop();
     }
   }
 
-  public async bootstrapScenario(
-    id: string,
-    request: RequestValue,
-    response: ResponseValue
-  ) {
-    const activeScenario = this.getActiveScenario(id);
-
-    if (activeScenario) {
-      return activeScenario.bootstrap(request, response);
+  stopScenarios() {
+    for (const scenario of this.scenarios) {
+      scenario.stop();
     }
   }
 
-  public resetScenario(id: string) {
+  resetScenario(id: string) {
     this.stopScenario(id);
     this.startScenario(id);
   }
 
-  public getScenarios() {
-    return this.scenarioDefinitions;
+  getScenarios() {
+    return this.scenarios;
   }
 
-  public getActiveScenario(id: string) {
-    return this.activeScenarios.find(x => x.id === id);
+  getScenario(id: string) {
+    return this.scenarios.find(x => x.getId() === id);
   }
 
-  public getActiveScenarios() {
-    return this.activeScenarios;
-  }
+  async onRequest(ctx: ScenarioManagerRequestContext): Promise<void> {
+    if (!this.active) {
+      return;
+    }
 
-  public getScenario(id: string) {
-    return this.scenarioDefinitions.find(x => x.id === id);
-  }
-
-  public hasScenario(id: string) {
-    return this.scenarioDefinitions.some(x => x.id === id);
-  }
-
-  public isScenarioActive(id: string) {
-    return this.activeScenarios.some(x => x.id === id);
-  }
-
-  public async onRequest(ctx: ScenarioManagerRequestContext): Promise<void> {
-    for (const scenario of this.activeScenarios) {
-      const scenarioRequestLog: ScenarioRequestLog = {
-        expectations: [],
-        id: scenario.id
-      };
-
-      ctx.scenarioRequestLogs.push(scenarioRequestLog);
-
+    for (const scenario of this.scenarios) {
       const scenarioRequestContext: ScenarioRequestContext = {
         request: ctx.request,
         response: ctx.response,
-        scenarioRequestLog
+        scenarioRequestLogs: ctx.scenarioRequestLogs
       };
 
       await scenario.onRequest(scenarioRequestContext);
