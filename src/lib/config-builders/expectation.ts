@@ -20,6 +20,7 @@ export function expect(...matchers: ContextMatcherInput[]) {
 export class ExpectationConfigBuilder {
   private _config: ExpectationConfig = {
     afterResponseActions: [],
+    next: false,
     verifyMatchers: [],
     whenMatchers: []
   };
@@ -43,12 +44,17 @@ export class ExpectationConfigBuilder {
     return this;
   }
 
+  next() {
+    this._config.next = true;
+    return this;
+  }
+
   afterResponse(...actions: ActionInput[]) {
     this._config.afterResponseActions = actions;
     return this;
   }
 
-  build() {
+  getConfig() {
     return this._config;
   }
 }

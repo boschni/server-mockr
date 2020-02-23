@@ -63,7 +63,7 @@ export class ScenarioConfigBuilder {
     return builder;
   }
 
-  build() {
+  getConfig() {
     return this._config;
   }
 }

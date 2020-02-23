@@ -40,7 +40,7 @@ export const createResponseValue = (): ResponseValue => {
   return response;
 };
 
-export const hasResponse = (response: ResponseValue): boolean => {
+const hasResponse = (response: ResponseValue): boolean => {
   return (
     response.status !== undefined ||
     response.body !== undefined ||

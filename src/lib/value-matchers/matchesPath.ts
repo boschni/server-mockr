@@ -36,6 +36,10 @@ export const matchesPath = (value: MatchesPathInput) => {
       pass: true
     };
 
+    if (value === "*") {
+      return result;
+    }
+
     if (typeof input !== "string") {
       result.pass = false;
       return result;

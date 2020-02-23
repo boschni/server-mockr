@@ -66,7 +66,7 @@ export class ResponseConfigBuilder {
     return this;
   }
 
-  build() {
+  getConfig() {
     return this._config;
   }
 }

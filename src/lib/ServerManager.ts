@@ -16,10 +16,13 @@ import {
 } from "./ScenarioManager";
 import {
   createResponseValue,
-  hasResponse,
   incomingMessageToRequestValue,
   respondWithResponseValue
 } from "./valueHelpers";
+
+/*
+ * SERVER MANAGER
+ */
 
 export class ServerManager {
   private servers: Server[] = [];
@@ -78,21 +81,21 @@ export class ServerManager {
       response
     };
 
-    await this.globalExpectationManager.onRequest(
+    let handled = await this.globalExpectationManager.onRequest(
       globalExpectationManagerRequestCtx
     );
 
-    if (!hasResponse(response)) {
+    if (!handled) {
       const scenarioManagerRequestCtx: ScenarioManagerRequestContext = {
         request,
         response,
         scenarioRequestLogs: log.scenarios
       };
 
-      await this.scenarioManager.onRequest(scenarioManagerRequestCtx);
+      handled = await this.scenarioManager.onRequest(scenarioManagerRequestCtx);
     }
 
-    if (hasResponse(response)) {
+    if (handled) {
       log.response = response;
     }
 

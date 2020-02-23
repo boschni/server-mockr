@@ -1,7 +1,7 @@
 // tslint:disable-next-line
-import { ExpectationConfigBuilder } from "./builders/expectation";
+import { ExpectationConfigBuilder } from "./config-builders/expectation";
 // tslint:disable-next-line
-import { ScenarioConfigBuilder } from "./builders/scenario";
+import { ScenarioConfigBuilder } from "./config-builders/scenario";
 import { GlobalsValue } from "./Values";
 
 /*

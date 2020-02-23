@@ -1,16 +1,23 @@
-import { ExpectationConfigBuilder } from "./builders/expectation";
 import { Config } from "./Config";
+import { ExpectationConfigBuilder } from "./config-builders/expectation";
 import { Expectation, ExpectationRequestContext } from "./Expectation";
 import { Logger } from "./Logger";
 import { ExpectationRequestLog } from "./RequestLogManager";
-import { hasResponse } from "./valueHelpers";
 import { RequestValue, ResponseValue, StateValue } from "./Values";
+
+/*
+ * TYPES
+ */
 
 export interface ExpectationManagerRequestContext {
   expectationRequestLogs: ExpectationRequestLog[];
   request: RequestValue;
   response: ResponseValue;
 }
+
+/*
+ * MANAGER
+ */
 
 export class ExpectationManager {
   private active = false;
@@ -53,7 +60,7 @@ export class ExpectationManager {
   }
 
   addExpectation(builder: ExpectationConfigBuilder) {
-    const expectationConfig = builder.build();
+    const expectationConfig = builder.getConfig();
 
     const expectation = new Expectation(
       this.config,
@@ -78,9 +85,9 @@ export class ExpectationManager {
     return this.expectationState;
   }
 
-  async onRequest(ctx: ExpectationManagerRequestContext): Promise<void> {
+  async onRequest(ctx: ExpectationManagerRequestContext): Promise<boolean> {
     if (!this.active) {
-      return;
+      return false;
     }
 
     for (const expectation of this.expectations) {
@@ -93,11 +100,13 @@ export class ExpectationManager {
         times: 0
       };
 
-      await expectation.onRequest(expectationCtx);
+      const handled = await expectation.onRequest(expectationCtx);
 
-      if (hasResponse(expectationCtx.res)) {
-        return;
+      if (handled) {
+        return true;
       }
     }
+
+    return false;
   }
 }

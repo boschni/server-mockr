@@ -1,8 +1,8 @@
 import MarkdownIt from "markdown-it";
 
-import { ExpectationConfigBuilder } from "./builders/expectation";
-import { ResponseConfigBuilder } from "./builders/response";
 import { Config } from "./Config";
+import { ExpectationConfigBuilder } from "./config-builders/expectation";
+import { ResponseConfigBuilder } from "./config-builders/response";
 import { ContextMatcherInput, ExpectationRequestContext } from "./Expectation";
 import {
   ExpectationManager,
@@ -20,6 +20,10 @@ import {
   ResponseValue,
   StateValue
 } from "./Values";
+
+/*
+ * TYPES
+ */
 
 export interface ScenarioRequestContext {
   scenarioRequestLogs: ScenarioRequestLog[];
@@ -53,17 +57,30 @@ export interface ScenarioConfig {
 export type OnBootstrapCallback = (
   ctx: OnBootstrapScenarioContext
 ) => ResponseConfigBuilder | void;
+
 export type OnStartCallback = (ctx: OnStartScenarioContext) => void;
+
+/*
+ * HELPERS
+ */
 
 const md = new MarkdownIt({
   html: true
 });
 
+/*
+ * SCENARIO
+ */
+
 export class Scenario {
   private active = false;
   private expectationManager?: ExpectationManager;
 
-  constructor(private config: Config, private logger: Logger, private scenarioConfig: ScenarioConfig) {}
+  constructor(
+    private config: Config,
+    private logger: Logger,
+    private scenarioConfig: ScenarioConfig
+  ) {}
 
   async start(state?: StateValue) {
     this.active = true;
@@ -140,14 +157,14 @@ export class Scenario {
       times: 1
     };
 
-    const config = responseConfigBuilder.build();
+    const config = responseConfigBuilder.getConfig();
     const action = new RespondAction(config);
     await action.execute(expectationValue);
   }
 
-  async onRequest(ctx: ScenarioRequestContext): Promise<void> {
+  async onRequest(ctx: ScenarioRequestContext): Promise<boolean> {
     if (!this.active || !this.expectationManager) {
-      return;
+      return false;
     }
 
     const scenarioRequestLog: ScenarioRequestLog = {

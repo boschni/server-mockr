@@ -1,6 +1,6 @@
 import { ControlServer } from "../control-server/ControlServer";
-import { ExpectationConfigBuilder } from "./builders/expectation";
-import { ScenarioConfigBuilder } from "./builders/scenario";
+import { ExpectationConfigBuilder } from "./config-builders/expectation";
+import { ScenarioConfigBuilder } from "./config-builders/scenario";
 import { Config, createConfig, InitialConfig } from "./Config";
 import { ContextMatcherInput } from "./Expectation";
 import { ExpectationManager } from "./ExpectationManager";

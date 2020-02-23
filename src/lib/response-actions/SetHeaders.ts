@@ -24,7 +24,7 @@ export class SetHeadersAction implements ResponseAction {
     for (const name of Object.keys(this._map)) {
       const appendValue = this._map[name];
 
-      if (!appendValue) {
+      if (appendValue === undefined) {
         continue;
       }
 

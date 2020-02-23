@@ -1,12 +1,11 @@
 import { Action } from "./actions/Action";
-import { ResponseConfigBuilder } from "./builders/response";
 import { Config } from "./Config";
+import { ResponseConfigBuilder } from "./config-builders/response";
 import { ContextMatcher, request } from "./context-matchers";
 import { Logger } from "./Logger";
 import { ExpectationRequestLog } from "./RequestLogManager";
 import { RespondAction } from "./response-actions";
 import { isMatchResult, isPassed, MatchResult } from "./value-matchers/MatchFn";
-import { hasResponse } from "./valueHelpers";
 import { ExpectationValue } from "./Values";
 
 /*
@@ -42,6 +41,7 @@ export interface ExpectationRequestContext extends ExpectationValue {
 export interface ExpectationConfig {
   afterResponseActions: ActionInput[];
   id?: string;
+  next: boolean;
   respondInput?: RespondInput;
   verifyMatchers: ContextMatcherInput[];
   whenMatchers: ContextMatcherInput[];
@@ -74,46 +74,49 @@ export class Expectation {
     this.timesMatched = 0;
   }
 
-  async onRequest(ctx: ExpectationRequestContext): Promise<void> {
+  async onRequest(ctx: ExpectationRequestContext): Promise<boolean> {
     if (!this.active) {
-      return;
+      return false;
     }
-
-    const {
-      afterResponseActions,
-      respondInput: respondAction,
-      whenMatchers,
-      verifyMatchers
-    } = this.expectationConfig;
 
     const log: ExpectationRequestLog = {
       id: this.id
     };
-
     ctx.expectationRequestLogs.push(log);
+
+    const {
+      afterResponseActions,
+      next,
+      respondInput,
+      verifyMatchers,
+      whenMatchers
+    } = this.expectationConfig;
 
     ctx.times = this.timesMatched;
 
     const matchResult = await this.when(whenMatchers, ctx);
-
     log.matchResult = matchResult;
 
     if (!isPassed(matchResult)) {
-      return;
+      return false;
     }
 
     this.timesMatched++;
 
-    if (verifyMatchers) {
-      const verifyResult = await this.verify(verifyMatchers, ctx);
-      log.verifyResult = verifyResult;
+    const verifyResult = await this.verify(verifyMatchers, ctx);
+    log.verifyResult = verifyResult;
+
+    if (!isPassed(verifyResult)) {
+      return false;
     }
 
-    if (respondAction && !hasResponse(ctx.res)) {
-      await this.response(respondAction, ctx);
+    if (respondInput !== undefined) {
+      await this.response(respondInput, ctx);
     }
 
     await this.afterResponse(afterResponseActions, ctx);
+
+    return next ? false : true;
   }
 
   private async verify(
@@ -172,7 +175,7 @@ export class Expectation {
       value = new ResponseConfigBuilder(value);
     }
 
-    const config = (value as ResponseConfigBuilder).build();
+    const config = (value as ResponseConfigBuilder).getConfig();
     const action = new RespondAction(config);
     await action.execute(ctx);
   }

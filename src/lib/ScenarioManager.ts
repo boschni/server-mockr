@@ -1,16 +1,23 @@
-import { ScenarioConfigBuilder } from "./builders/scenario";
 import { Config } from "./Config";
+import { ScenarioConfigBuilder } from "./config-builders/scenario";
 import { Logger } from "./Logger";
 import { ScenarioRequestLog } from "./RequestLogManager";
 import { Scenario, ScenarioRequestContext } from "./Scenario";
-import { hasResponse } from "./valueHelpers";
 import { RequestValue, ResponseValue, StateValue } from "./Values";
+
+/*
+ * TYPES
+ */
 
 export interface ScenarioManagerRequestContext {
   scenarioRequestLogs: ScenarioRequestLog[];
   request: RequestValue;
   response: ResponseValue;
 }
+
+/*
+ * MANAGER
+ */
 
 export class ScenarioManager {
   private scenarios: Scenario[] = [];
@@ -32,7 +39,7 @@ export class ScenarioManager {
   }
 
   addScenario(builder: ScenarioConfigBuilder) {
-    const scenarioConfig = builder.build();
+    const scenarioConfig = builder.getConfig();
     const scenario = new Scenario(this.config, this.logger, scenarioConfig);
     this.scenarios.push(scenario);
   }
@@ -81,9 +88,9 @@ export class ScenarioManager {
     return this.scenarios.find(x => x.getId() === id);
   }
 
-  async onRequest(ctx: ScenarioManagerRequestContext): Promise<void> {
+  async onRequest(ctx: ScenarioManagerRequestContext): Promise<boolean> {
     if (!this.active) {
-      return;
+      return false;
     }
 
     for (const scenario of this.scenarios) {
@@ -93,11 +100,13 @@ export class ScenarioManager {
         scenarioRequestLogs: ctx.scenarioRequestLogs
       };
 
-      await scenario.onRequest(scenarioRequestContext);
+      const handled = await scenario.onRequest(scenarioRequestContext);
 
-      if (hasResponse(ctx.response)) {
-        return;
+      if (handled) {
+        return true;
       }
     }
+
+    return false;
   }
 }
