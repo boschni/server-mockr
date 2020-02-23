@@ -15,9 +15,9 @@ import { clone } from "./utils/clone";
 import { createDefaultedState } from "./valueHelpers";
 import {
   GlobalsValue,
-  JSONSchemaParam,
   RequestValue,
   ResponseValue,
+  StateConfig,
   StateValue
 } from "./Values";
 
@@ -45,12 +45,12 @@ interface OnStartScenarioContext {
 }
 
 export interface ScenarioConfig {
-  stateParams: JSONSchemaParam[];
   description: string;
   expectationBuilders: ExpectationConfigBuilder[];
   id: string;
   onBootstrap?: OnBootstrapCallback;
   onStart?: OnStartCallback;
+  stateConfigs: StateConfig[];
   tags: string[];
 }
 
@@ -93,9 +93,9 @@ export class Scenario {
 
     this.expectationManager = expectationManager;
 
-    const { stateParams, onStart } = this.scenarioConfig;
+    const { stateConfigs, onStart } = this.scenarioConfig;
 
-    const defaultedState = createDefaultedState(state, stateParams);
+    const defaultedState = createDefaultedState(state, stateConfigs);
 
     if (onStart) {
       const ctx: OnStartScenarioContext = {
@@ -209,8 +209,8 @@ export class Scenario {
     return this.scenarioConfig.tags;
   }
 
-  getVisibleStateParams(): JSONSchemaParam[] {
-    return this.scenarioConfig.stateParams.filter(x => !x.schema.hidden);
+  getVisibleStateParams(): StateConfig[] {
+    return this.scenarioConfig.stateConfigs.filter(x => !x.schema.hidden);
   }
 
   getState(): StateValue {

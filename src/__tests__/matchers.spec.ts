@@ -7,6 +7,7 @@ import {
   isLowerThan,
   isLowerThanOrEqual,
   matchesObject,
+  oneOf,
   pointer,
   prop,
   request,
@@ -262,6 +263,48 @@ describe("matchers", () => {
     test("should not match when the object does not match partially", async () => {
       mockr.when(request().body(matchesObject({ a: "b" }))).respond("ok");
       const res = await post("/test").send({ b: "b" });
+      expect(res.status).toEqual(404);
+    });
+  });
+
+  /*
+   * oneOf()
+   */
+
+  describe("oneOf()", () => {
+    test("should match when exactly one of the values matches", async () => {
+      mockr.when(request().query("order", oneOf("asc", "desc"))).respond("ok");
+      const res = await get("/test?order=asc");
+      expect(res.text).toEqual("ok");
+    });
+
+    test("should not match when none of the values match", async () => {
+      mockr.when(request().query("order", oneOf("asc", "desc"))).respond("ok");
+      const res = await get("/test?order=none");
+      expect(res.status).toEqual(404);
+    });
+
+    test("should not match when multiple values match", async () => {
+      mockr
+        .when(request().query("order", oneOf("asc", "desc", "asc")))
+        .respond("ok");
+      const res = await get("/test?order=asc");
+      expect(res.status).toEqual(404);
+    });
+
+    test("should match when only one of the matchers matches", async () => {
+      mockr
+        .when(request().query("order", oneOf(startsWith("a"), endsWith("a"))))
+        .respond("ok");
+      const res = await get("/test?order=asc");
+      expect(res.text).toEqual("ok");
+    });
+
+    test("should not match when multiple matchers match", async () => {
+      mockr
+        .when(request().query("order", oneOf(startsWith("a"), endsWith("c"))))
+        .respond("ok");
+      const res = await get("/test?order=invalid");
       expect(res.status).toEqual(404);
     });
   });

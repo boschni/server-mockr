@@ -2,6 +2,7 @@ export * from "./MatchFn";
 export * from "./allOf";
 export * from "./anyOf";
 export * from "./endsWith";
+export * from "./includes";
 export * from "./isEqualTo";
 export * from "./isGreaterThan";
 export * from "./isGreaterThanOrEqual";

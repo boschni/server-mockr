@@ -1,6 +1,6 @@
 import { Action } from "./actions/Action";
 import { Config } from "./Config";
-import { ResponseConfigBuilder } from "./config-builders/response";
+import { response, ResponseConfigBuilder } from "./config-builders/response";
 import { ContextMatcher, request } from "./context-matchers";
 import { Logger } from "./Logger";
 import { ExpectationRequestLog } from "./RequestLogManager";
@@ -39,11 +39,12 @@ export interface ExpectationRequestContext extends ExpectationValue {
 }
 
 export interface ExpectationConfig {
-  afterResponseActions: ActionInput[];
+  afterRespondActions: ActionInput[];
   id?: string;
   next: boolean;
   respondInput?: RespondInput;
   verifyMatchers: ContextMatcherInput[];
+  verifyFailedRespondInput?: RespondInput;
   whenMatchers: ContextMatcherInput[];
 }
 
@@ -85,16 +86,17 @@ export class Expectation {
     ctx.expectationRequestLogs.push(log);
 
     const {
-      afterResponseActions,
+      afterRespondActions,
       next,
       respondInput,
       verifyMatchers,
+      verifyFailedRespondInput,
       whenMatchers
     } = this.expectationConfig;
 
     ctx.times = this.timesMatched;
 
-    const matchResult = await this.when(whenMatchers, ctx);
+    const matchResult = await this.match(whenMatchers, ctx);
     log.matchResult = matchResult;
 
     if (!isPassed(matchResult)) {
@@ -103,40 +105,32 @@ export class Expectation {
 
     this.timesMatched++;
 
-    const verifyResult = await this.verify(verifyMatchers, ctx);
+    const verifyResult = await this.match(verifyMatchers, ctx);
     log.verifyResult = verifyResult;
 
     if (!isPassed(verifyResult)) {
-      return false;
+      this.logger.log("info", "Verify failed because:");
+      this.logger.log("info", verifyResult);
+
+      if (verifyFailedRespondInput !== undefined) {
+        await this.response(verifyFailedRespondInput, ctx);
+      } else {
+        await this.response(response(verifyResult).status(400), ctx);
+      }
+
+      return true;
     }
 
     if (respondInput !== undefined) {
       await this.response(respondInput, ctx);
     }
 
-    await this.afterResponse(afterResponseActions, ctx);
+    await this.afterRespond(afterRespondActions, ctx);
 
     return next ? false : true;
   }
 
-  private async verify(
-    matcherValues: ContextMatcherInput[],
-    ctx: ExpectationRequestContext
-  ): Promise<MatchResult> {
-    const result = await this.when(matcherValues, ctx);
-
-    if (!isPassed(result)) {
-      this.logger.log("info", "Verify failed because:");
-      this.logger.log("info", result);
-      ctx.res.status = 400;
-      ctx.res.headers["Content-Type"] = "application/json";
-      ctx.res.body = JSON.stringify(result);
-    }
-
-    return result;
-  }
-
-  private async when(
+  private async match(
     values: ContextMatcherInput[],
     ctx: ExpectationRequestContext
   ): Promise<MatchResult> {
@@ -180,7 +174,7 @@ export class Expectation {
     await action.execute(ctx);
   }
 
-  private async afterResponse(
+  private async afterRespond(
     values: ActionInput[],
     ctx: ExpectationRequestContext
   ): Promise<void> {

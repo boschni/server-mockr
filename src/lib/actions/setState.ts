@@ -5,15 +5,15 @@ import { Action } from "./Action";
  * FACTORY
  */
 
-export function setStateParam(name: string, value: unknown) {
-  return new SetStateParamAction(name, value);
+export function setState(name: string, value: unknown) {
+  return new SetStateAction(name, value);
 }
 
 /*
  * ACTION
  */
 
-export class SetStateParamAction implements Action {
+export class SetStateAction implements Action {
   private _state: StateValue;
 
   constructor(name: string, value: unknown) {

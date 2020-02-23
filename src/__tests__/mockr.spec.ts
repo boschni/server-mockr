@@ -1,7 +1,6 @@
 import "jest";
 
-import { globalParam, ServerMockr, setStateParam, times } from "../";
-import { stateParam } from "../lib/context-matchers";
+import { globals, ServerMockr, setState, state, times } from "../";
 import { get, setup } from "./utils";
 
 describe("mockr.when()", () => {
@@ -39,50 +38,50 @@ describe("mockr.when()", () => {
    * GLOBAL PARAM
    */
 
-  describe("globalParam()", () => {
-    test("should match when a globalParam context matcher matches", async () => {
-      mockr.when(globalParam("testValue", "something")).respond("ok");
+  describe("globals()", () => {
+    test("should match when a globals context matcher matches", async () => {
+      mockr.when(globals("testValue", "something")).respond("ok");
       const res = await get("/test");
       expect(res.text).toEqual("ok");
     });
 
-    test("should not match when a globalParam context matcher not matches", async () => {
-      mockr.when(globalParam("testValue", "invalid")).respond("ok");
+    test("should not match when a globals context matcher not matches", async () => {
+      mockr.when(globals("testValue", "invalid")).respond("ok");
       const res = await get("/test");
       expect(res.status).toEqual(404);
     });
   });
 
   /*
-   * STATE PARAM
+   * STATE
    */
 
-  describe("stateParam()", () => {
-    test("should match when a stateParam context matcher matches", async () => {
-      mockr.when("/test", stateParam("a", "b")).respond("ok");
+  describe("state()", () => {
+    test("should match when a state context matcher matches", async () => {
+      mockr.when("/test", state("a", "b")).respond("ok");
       const res = await get("/test");
       expect(res.status).toEqual(404);
 
       mockr
         .when("/test")
-        .afterResponse(setStateParam("a", "b"))
+        .afterRespond(setState("a", "b"))
         .respond("ok");
       const res2 = await get("/test");
       expect(res2.text).toEqual("ok");
 
-      mockr.when("/test", stateParam("a", "b")).respond("ok");
+      mockr.when("/test", state("a", "b")).respond("ok");
       const res3 = await get("/test");
       expect(res3.text).toEqual("ok");
     });
 
     test("should not retain state after clear", async () => {
-      mockr.when("/test", stateParam("a", "b")).respond("ok");
+      mockr.when("/test", state("a", "b")).respond("ok");
       const res = await get("/test");
       expect(res.status).toEqual(404);
     });
 
     test("should be able to test on absence of state param", async () => {
-      mockr.when("/test", stateParam("absent", undefined)).respond("ok");
+      mockr.when("/test", state("absent", undefined)).respond("ok");
       const res = await get("/test");
       expect(res.text).toEqual("ok");
     });

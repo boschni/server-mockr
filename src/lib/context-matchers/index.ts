@@ -1,5 +1,5 @@
 export { ContextMatcher } from "./ContextMatcher";
-export { globalParam } from "./globalParam";
+export { globals } from "./globals";
 export { request } from "./request";
-export { stateParam } from "./stateParam";
+export { state } from "./state";
 export { times } from "./times";

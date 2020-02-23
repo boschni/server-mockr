@@ -24,7 +24,7 @@ export class ScenarioConfigBuilder {
     description: "",
     expectationBuilders: [],
     id: "",
-    stateParams: [],
+    stateConfigs: [],
     tags: []
   };
 
@@ -42,8 +42,8 @@ export class ScenarioConfigBuilder {
     return this;
   }
 
-  stateParam(name: string, schema: JSONSchemaDefinition) {
-    this._config.stateParams.push({ name, schema });
+  state(name: string, schema: JSONSchemaDefinition) {
+    this._config.stateConfigs.push({ name, schema });
     return this;
   }
 

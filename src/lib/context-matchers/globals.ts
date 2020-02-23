@@ -12,9 +12,9 @@ import { ContextMatcher } from "./ContextMatcher";
  * FACTORY
  */
 
-export function globalParam(name: string, value: JSONValue): GlobalsMatcher;
-export function globalParam(name: string, fn: MatchFn): GlobalsMatcher;
-export function globalParam(
+export function globals(name: string, value: JSONValue): GlobalsMatcher;
+export function globals(name: string, fn: MatchFn): GlobalsMatcher;
+export function globals(
   name: string,
   matcher: MatchFn | JSONValue
 ): GlobalsMatcher {

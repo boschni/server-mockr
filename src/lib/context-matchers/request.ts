@@ -108,9 +108,9 @@ export class RequestMatcher implements ContextMatcher {
     return this;
   }
 
-  pathParam(name: string, value: string): RequestMatcher;
-  pathParam(name: string, fn: MatchFn): RequestMatcher;
-  pathParam(name: string, matcher: string | MatchFn): RequestMatcher {
+  param(name: string, value: string): RequestMatcher;
+  param(name: string, fn: MatchFn): RequestMatcher;
+  param(name: string, matcher: string | MatchFn): RequestMatcher {
     matcher = typeof matcher === "function" ? matcher : isEqualTo(matcher);
     this._paramsMatchers.push(prop(name, matcher));
     return this;

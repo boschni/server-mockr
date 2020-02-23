@@ -3,11 +3,7 @@
   "version": "1.0.0",
   "description": "Package to mock HTTP APIs for fast and reliable testing.",
   "main": "dist/index.js",
-  "bin": {
-    "server-mockr": "./bin/server-mockr.js"
-  },
   "files": [
-    "bin",
     "dist"
   ],
   "scripts": {
@@ -42,7 +38,6 @@
   "homepage": "https://github.com/boschni/server-mockr#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
-    "commander": "^4.1.1",
     "cookie": "^0.4.0",
     "cookie-parser": "^1.4.4",
     "ejs": "^3.0.1",

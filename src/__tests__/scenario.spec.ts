@@ -1,6 +1,6 @@
 import "jest";
 
-import { ServerMockr, stateParam } from "../";
+import { ServerMockr, setState, state } from "../";
 import { get, setup } from "./utils";
 
 describe("scenario()", () => {
@@ -56,7 +56,7 @@ describe("scenario()", () => {
     test("should not keep state when restarted", async () => {
       mockr
         .scenario("id")
-        .when("/test", stateParam("language", "nl"))
+        .when("/test", state("language", "nl"))
         .respond("ok");
       mockr.startScenario("id", { language: "nl" });
       const res = await get("/test");
@@ -70,8 +70,8 @@ describe("scenario()", () => {
     test("should set default state", async () => {
       mockr
         .scenario("id")
-        .stateParam("language", { type: "string", default: "nl" })
-        .when("/test", stateParam("language", "nl"))
+        .state("language", { type: "string", default: "nl" })
+        .when("/test", state("language", "nl"))
         .respond("ok");
       mockr.startScenario("id");
       const res = await get("/test");
@@ -81,8 +81,8 @@ describe("scenario()", () => {
     test("should not match if default state does not match", async () => {
       mockr
         .scenario("id")
-        .stateParam("language", { type: "string", default: "nl" })
-        .when("/test", stateParam("language", "en"))
+        .state("language", { type: "string", default: "nl" })
+        .when("/test", state("language", "en"))
         .respond("ok");
       mockr.startScenario("id");
       const res = await get("/test");
@@ -92,8 +92,8 @@ describe("scenario()", () => {
     test("should set given state", async () => {
       mockr
         .scenario("id")
-        .stateParam("language", { type: "string", default: "nl" })
-        .when("/test", stateParam("language", "en"))
+        .state("language", { type: "string", default: "nl" })
+        .when("/test", state("language", "en"))
         .respond("ok");
       mockr.startScenario("id", { language: "en" });
       const res = await get("/test");
@@ -118,6 +118,24 @@ describe("scenario()", () => {
       mockr.startScenario("id");
       const res = await get("/test");
       expect(res.text).toEqual("ok");
+    });
+
+    test("expectations added in onStart not persist on restart", async () => {
+      mockr.scenario("id").onStart(({ when }) => {
+        when("/test")
+          .afterRespond(ctx =>
+            setState("count", ctx.state.count ? ctx.state.count + 1 : 1)
+          )
+          .next();
+        when("/test", state("count", 2)).respond("ok");
+      });
+      mockr.startScenario("id");
+      const res = await get("/test");
+      expect(res.status).toEqual(404);
+      mockr.stopScenario("id");
+      mockr.startScenario("id");
+      const res2 = await get("/test");
+      expect(res2.status).toEqual(404);
     });
 
     test("should only have one active scenario if configured", async () => {

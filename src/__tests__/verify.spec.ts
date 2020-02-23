@@ -1,6 +1,6 @@
 import "jest";
 
-import { ServerMockr } from "../";
+import { response, ServerMockr } from "../";
 import { get, setup } from "./utils";
 
 describe("verify()", () => {
@@ -38,6 +38,17 @@ describe("verify()", () => {
       const res = await get("/test");
       expect(res.body.message).toEqual("matches request");
       expect(res.status).toEqual(400);
+    });
+
+    test("should send custom verify failed response if defined", async () => {
+      mockr
+        .when("/test")
+        .verify("/test-2")
+        .verifyFailedRespond(response("Server Error").status(500))
+        .respond("ok");
+      const res = await get("/test");
+      expect(res.text).toEqual("Server Error");
+      expect(res.status).toEqual(500);
     });
   });
 });

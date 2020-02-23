@@ -2,11 +2,10 @@ import { IncomingMessage, ServerResponse } from "http";
 import url from "url";
 
 import {
-  GlobalsValue,
-  JSONSchemaParam,
   QueryValue,
   RequestValue,
   ResponseValue,
+  StateConfig,
   StateValue
 } from "./Values";
 
@@ -71,21 +70,14 @@ export const respondWithResponseValue = async (
   });
 };
 
-export const createDefaultedGlobals = (providedGlobals?: GlobalsValue) => {
-  const globalsDefaults: GlobalsValue = {};
-  return { ...globalsDefaults, ...providedGlobals };
-};
-
 export const createDefaultedState = (
   providedState?: StateValue,
-  stateParams?: JSONSchemaParam[]
+  configs: StateConfig[] = []
 ) => {
   const stateDefaults: StateValue = {};
 
-  if (stateParams) {
-    for (const param of stateParams) {
-      stateDefaults[param.name] = param.schema.default;
-    }
+  for (const param of configs) {
+    stateDefaults[param.name] = param.schema.default;
   }
 
   return { ...stateDefaults, ...providedState };

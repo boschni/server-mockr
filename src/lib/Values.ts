@@ -145,7 +145,7 @@ export type JSONValue =
  * SCHEMA
  */
 
-export interface JSONSchemaParam {
+export interface StateConfig {
   name: string;
   schema: JSONSchemaDefinition;
 }

@@ -12,9 +12,9 @@ import { ContextMatcher } from "./ContextMatcher";
  * FACTORY
  */
 
-export function stateParam(name: string, value: JSONValue): StateMatcher;
-export function stateParam(name: string, fn: MatchFn): StateMatcher;
-export function stateParam(
+export function state(name: string, value: JSONValue): StateMatcher;
+export function state(name: string, fn: MatchFn): StateMatcher;
+export function state(
   name: string,
   matcher: MatchFn | JSONValue
 ): StateMatcher {

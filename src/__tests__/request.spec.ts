@@ -102,7 +102,7 @@ describe("request()", () => {
         .when(
           request()
             .path("/test/:id")
-            .pathParam("id", "1")
+            .param("id", "1")
         )
         .respond("ok");
       const res = await get("/test/1");
@@ -114,7 +114,7 @@ describe("request()", () => {
         .when(
           request()
             .path("/test/:id")
-            .pathParam("id", "1")
+            .param("id", "1")
         )
         .respond("ok");
       const res = await get("/test/2");
@@ -126,7 +126,7 @@ describe("request()", () => {
         .when(
           request()
             .path("/test/:id")
-            .pathParam("id", anyOf("1", "2"))
+            .param("id", anyOf("1", "2"))
         )
         .respond("ok");
       const res = await get("/test/1");
@@ -138,7 +138,7 @@ describe("request()", () => {
         .when(
           request()
             .path("/test/:id")
-            .pathParam("id", anyOf("1", "2"))
+            .param("id", anyOf("1", "2"))
         )
         .respond("ok");
       const res = await get("/test/3");

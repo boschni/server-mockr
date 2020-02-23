@@ -2,8 +2,8 @@ import ServerMockr, {
   isEqualTo,
   request,
   response,
-  setStateParam,
-  stateParam,
+  setState,
+  state,
   times
 } from "../index";
 import { anyOf, isGreaterThanOrEqual } from "../lib/value-matchers";
@@ -34,19 +34,19 @@ Steps:
 - Goto one
 - Goto two`
   )
-  .stateParam("locale", {
+  .state("locale", {
     type: "string",
     enum: ["nl-nl", "en-gb"],
     default: "en-gb"
   })
-  .stateParam("todos", {
+  .state("todos", {
     type: "string",
     enum: ["saved"],
     hidden: true
   })
-  .onBootstrap(({ globals, state }) =>
+  .onBootstrap(ctx =>
     response().redirect(
-      `${globals.mockServerUrl}/${state.locale}/todos?test=a&test=b`
+      `${ctx.globals.mockServerUrl}/${ctx.state.locale}/todos?test=a&test=b`
     )
   )
   .onStart(({ when }) => {
@@ -54,7 +54,7 @@ Steps:
 
     when(request("/count"))
       .respond(() => response(count))
-      .afterResponse(() => {
+      .afterRespond(() => {
         count++;
       });
 
@@ -71,18 +71,18 @@ Steps:
     when(
       request("/en-gb/todos/:id")
         .method("GET")
-        .pathParam("id", "1")
-        .pathParam("id", isEqualTo("1")),
+        .param("id", "1")
+        .param("id", isEqualTo("1")),
       times(2)
     ).respond(({ req }) => response().json({ id: req.params.id }));
 
-    when(request("/en-gb/todos"), stateParam("todos", undefined))
+    when(request("/en-gb/todos"), state("todos", undefined))
       .verify(request().query("test", ["a", "b"]))
-      .respond(({ state }) =>
+      .respond(ctx =>
         response()
           .header("Set-Cookie", "SessionId=SomeSessionId; Path=/; HttpOnly")
           .delay(1000)
-          .json({ locale: state.locale })
+          .json({ locale: ctx.state.locale })
       )
-      .afterResponse(setStateParam("todos", "saved"));
+      .afterRespond(setState("todos", "saved"));
   });
