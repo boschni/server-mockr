@@ -1,10 +1,12 @@
 {
   "name": "server-mockr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Package to mock HTTP APIs for fast and reliable testing.",
   "main": "dist/index.js",
   "files": [
-    "dist"
+    "dist",
+    "!__tests__",
+    "!*.tsbuildinfo"
   ],
   "scripts": {
     "build": "tsc && copyfiles -u 2 ./src/control-server/{static,templates}/**/* ./dist/control-server/",

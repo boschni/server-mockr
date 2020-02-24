@@ -86,53 +86,51 @@ By default the mock server is available at http://localhost:3001 and the control
 Using a string:
 
 ```js
-mockr.when("/resource").respond("match");
+mockr.when("/resource").respond("ok");
 ```
 
 Using a string with parameters:
 
 ```js
-mockr.when("/resources/:id").respond("match");
+mockr.when("/resources/:id").respond("ok");
 ```
 
 Using a regular expression:
 
 ```js
-mockr.when(/\.html$/).respond("match");
+mockr.when(/\.html$/).respond("ok");
 ```
 
 Using a request matcher:
 
 ```js
-mockr.when(request("/resource")).respond("match");
+mockr.when(request("/resource")).respond("ok");
 ```
 
 Using the path method on a request matcher:
 
 ```js
-mockr.when(request().path("/resource")).respond("match");
+mockr.when(request().path("/resource")).respond("ok");
 ```
 
 Using the path method on a request matcher with a value matcher:
 
 ```js
-mockr.when(request().path(startsWith("/res"))).respond("match");
+mockr.when(request().path(startsWith("/res"))).respond("ok");
 ```
 
 Using the path method on a request matcher with a custom value matcher:
 
 ```js
-mockr.when(request().path(path => path.includes("todos"))).respond("match");
+mockr.when(request().path(path => path.includes("todos"))).respond("ok");
 ```
 
 #### Request params
 
 Request path parameters can be matched by using the `param` method:
 
-Using a shortcut method:
-
 ```js
-mockr.when(request("/resources/:id").param("id", "1")).respond("created");
+mockr.when(request("/resources/:id").param("id", "1")).respond("ok");
 ```
 
 #### Request method
@@ -142,13 +140,13 @@ The request method can be specified by using the `method` method or the with the
 Using the `method` method:
 
 ```js
-mockr.when(request("/resource").method("POST")).respond("match");
+mockr.when(request("/resource").method("POST")).respond("ok");
 ```
 
 Using a shortcut method:
 
 ```js
-mockr.when(request().post("/resource")).respond("match");
+mockr.when(request().post("/resource")).respond("ok");
 ```
 
 #### Request body
@@ -229,7 +227,7 @@ mockr
       .get("/resources")
       .query("limit", "100")
   )
-  .respond("match");
+  .respond("ok");
 ```
 
 Query string with array parameter (`/resources?id=1&id=2`):
@@ -241,7 +239,7 @@ mockr
       .get("/resources")
       .query("id", ["1", "2"])
   )
-  .respond("match");
+  .respond("ok");
 ```
 
 Query string with multiple parameters (`/resources?limit=100&order=asc`):
@@ -254,7 +252,7 @@ mockr
       .query("limit", "100")
       .query("order", "asc")
   )
-  .respond("match");
+  .respond("ok");
 ```
 
 Query string with multiple paramters and matchers (`/resources?limit=99&order=asc`):
@@ -265,9 +263,9 @@ mockr
     request()
       .get("/resources")
       .query("limit", matchesRegex(/[0-9]+/))
-      .query("order", anyOf("asc", "desc))
+      .query("order", anyOf("asc", "desc"))
   )
-  .respond("match");
+  .respond("ok");
 ```
 
 Query string with custom matcher:
@@ -279,7 +277,7 @@ mockr
       .get("/resources")
       .query(query => query.limit === "100")
   )
-  .respond("match");
+  .respond("ok");
 ```
 
 #### Request headers
@@ -295,7 +293,7 @@ mockr
       .get("/resources")
       .header("Authorization", "token")
   )
-  .respond("match");
+  .respond("ok");
 ```
 
 Multiple headers:
@@ -308,7 +306,7 @@ mockr
       .header("Authorization", "token")
       .header("Accept-Language", includes("nl-NL"))
   )
-  .respond("match");
+  .respond("ok");
 ```
 
 #### Request cookies
@@ -322,7 +320,7 @@ mockr
       .get("/resources")
       .cookie("sessionId", "id")
   )
-  .respond("match");
+  .respond("ok");
 ```
 
 #### Request url
@@ -330,7 +328,7 @@ mockr
 The `url` method allows you to match on the exact url:
 
 ```js
-mockr.when(request().url("/resources?limit=100&order=asc")).respond("match");
+mockr.when(request().url("/resources?limit=100&order=asc")).respond("ok");
 ```
 
 ### Specifying responses
@@ -348,7 +346,7 @@ mockr.when("/resource").respond(response().status(404));
 Using a string, will respond with a status 200 text response:
 
 ```js
-mockr.when("/resource").respond("match");
+mockr.when("/resource").respond("ok");
 ```
 
 Using an object, will respond with a status 200 JSON response:
@@ -569,7 +567,7 @@ The `allOf` matcher can be used to check if some value matches all given matcher
 ```js
 mockr
   .when(request().path(allOf(startsWith("/static"), endsWith(".png"))))
-  .respond("match");
+  .respond("ok");
 ```
 
 #### anyOf
@@ -579,13 +577,13 @@ The `anyOf` matcher can be used to check if some value matches any given matcher
 ```js
 mockr
   .when(request().path(anyOf(endsWith(".jpg"), endsWith(".png"))))
-  .respond("match");
+  .respond("ok");
 ```
 
 Or when given values:
 
 ```js
-mockr.when(request().query("order", anyOf("asc", "desc"))).respond("match");
+mockr.when(request().query("order", anyOf("asc", "desc"))).respond("ok");
 ```
 
 #### endsWith
@@ -593,7 +591,7 @@ mockr.when(request().query("order", anyOf("asc", "desc"))).respond("match");
 The `endsWith` matcher can be used to check if a string ends with some suffix:
 
 ```js
-mockr.when(request().path(endsWith(".html"))).respond("match");
+mockr.when(request().path(endsWith(".html"))).respond("ok");
 ```
 
 #### includes
@@ -601,7 +599,7 @@ mockr.when(request().path(endsWith(".html"))).respond("match");
 The `includes` matcher can be used to check if a string includes some other string:
 
 ```js
-mockr.when(request().path(includes("todo"))).respond("match");
+mockr.when(request().path(includes("todo"))).respond("ok");
 ```
 
 #### isEqualTo
@@ -609,7 +607,7 @@ mockr.when(request().path(includes("todo"))).respond("match");
 The `isEqualTo` matcher can be used to check if a value is equal to some other value:
 
 ```js
-mockr.when(request().path(isEqualTo("/todos"))).respond("match");
+mockr.when(request().path(isEqualTo("/todos"))).respond("ok");
 ```
 
 #### isGreaterThan
@@ -617,7 +615,7 @@ mockr.when(request().path(isEqualTo("/todos"))).respond("match");
 The `isGreaterThan` matcher can be used to check if a number is greater than some other number:
 
 ```js
-mockr.when(request().body(prop("count", isGreaterThan(5)))).respond("match");
+mockr.when(request().body(prop("count", isGreaterThan(5)))).respond("ok");
 ```
 
 #### isGreaterThanOrEqual
@@ -627,7 +625,7 @@ The `isGreaterThanOrEqual` matcher can be used to check if a number is greater t
 ```js
 mockr
   .when(request().body(prop("count", isGreaterThanOrEqual(5))))
-  .respond("match");
+  .respond("ok");
 ```
 
 #### isLowerThan
@@ -635,7 +633,7 @@ mockr
 The `isLowerThan` matcher can be used to check if a number is lower than some other number:
 
 ```js
-mockr.when(request().body(prop("count", isLowerThan(5)))).respond("match");
+mockr.when(request().body(prop("count", isLowerThan(5)))).respond("ok");
 ```
 
 #### isLowerThanOrEqual
@@ -643,9 +641,7 @@ mockr.when(request().body(prop("count", isLowerThan(5)))).respond("match");
 The `isLowerThanOrEqual` matcher can be used to check if a number is lower than or equal to some other number:
 
 ```js
-mockr
-  .when(request().body(prop("count", isLowerThanOrEqual(5))))
-  .respond("match");
+mockr.when(request().body(prop("count", isLowerThanOrEqual(5)))).respond("ok");
 ```
 
 #### matchesObject
@@ -653,7 +649,7 @@ mockr
 The `matchesObject` matcher can be used to check if an object partially matches some other object:
 
 ```js
-mockr.when(request().body(matchesObject({ id: 1 }))).respond("match");
+mockr.when(request().body(matchesObject({ id: 1 }))).respond("ok");
 ```
 
 #### matchesRegex
@@ -663,7 +659,7 @@ The `matchesRegex` matcher can be used to check if a string matches some regex:
 ```js
 mockr
   .when(request().header("Authorization", matchesRegex(/[a-z0-9]+/)))
-  .respond("match");
+  .respond("ok");
 ```
 
 #### not
@@ -671,13 +667,13 @@ mockr
 The `not` matcher can be used to negate other matchers:
 
 ```js
-mockr.when(request().path(not(startsWith("/res")))).respond("match");
+mockr.when(request().path(not(startsWith("/res")))).respond("ok");
 ```
 
 When given a value, it will check if the value is not equal to:
 
 ```js
-mockr.when(request().path(not("/res"))).respond("match");
+mockr.when(request().path(not("/res"))).respond("ok");
 ```
 
 #### oneOf
@@ -687,7 +683,7 @@ The `oneOf` matcher can be used to check if some value matches exactly one of th
 ```js
 mockr
   .when(request().path(oneOf(startsWith("/static"), endsWith(".png"))))
-  .respond("match");
+  .respond("ok");
 ```
 
 #### pointer
@@ -697,7 +693,7 @@ The `pointer` matcher can be used to check if the value referenced by the pointe
 ```js
 mockr
   .when(request().body(pointer("/addresses/0/street", includes("Street"))))
-  .respond("match");
+  .respond("ok");
 ```
 
 #### prop
@@ -705,7 +701,7 @@ mockr
 The `prop` matcher can be used to check if a property value matches some matcher:
 
 ```js
-mockr.when(request().body(prop("firstName", startsWith("F")))).respond("match");
+mockr.when(request().body(prop("firstName", startsWith("F")))).respond("ok");
 ```
 
 #### startsWith
@@ -713,5 +709,5 @@ mockr.when(request().body(prop("firstName", startsWith("F")))).respond("match");
 The `startsWith` matcher can be used to check if a string starts with some prefix:
 
 ```js
-mockr.when(request().path(startsWith("/res"))).respond("match");
+mockr.when(request().path(startsWith("/res"))).respond("ok");
 ```
