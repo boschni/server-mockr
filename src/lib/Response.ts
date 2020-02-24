@@ -1,19 +1,19 @@
-import { ResponseConfig } from "../response-actions/Respond";
-import { CookiesMapObject } from "../response-actions/SetCookies";
+import { ResponseConfig } from "./response-actions/Respond";
+import { CookiesMapObject } from "./response-actions/SetCookies";
 
 /*
  * FACTORY
  */
 
 export function response(body?: unknown) {
-  return new ResponseConfigBuilder(body);
+  return new Response(body);
 }
 
 /*
  * BUILDER
  */
 
-export class ResponseConfigBuilder {
+export class Response {
   private _config: ResponseConfig = {
     cookies: {},
     headers: {},

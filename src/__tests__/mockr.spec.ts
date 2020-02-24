@@ -35,7 +35,7 @@ describe("mockr.when()", () => {
   });
 
   /*
-   * GLOBAL PARAM
+   * GLOBALS
    */
 
   describe("globals()", () => {

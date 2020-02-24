@@ -1,11 +1,10 @@
 import { ControlServer } from "../control-server/ControlServer";
 import { Config, createConfig, InitialConfig } from "./Config";
-import { ExpectationConfigBuilder } from "./config-builders/expectation";
-import { ScenarioConfigBuilder } from "./config-builders/scenario";
-import { ContextMatcherInput } from "./Expectation";
+import { ContextMatcherInput, Expectation } from "./Expectation";
 import { ExpectationManager } from "./ExpectationManager";
 import { Logger } from "./Logger";
 import { RequestLogManager } from "./RequestLogManager";
+import { Scenario } from "./Scenario";
 import { ScenarioManager } from "./ScenarioManager";
 import { ServerManager } from "./ServerManager";
 import { StateValue } from "./Values";
@@ -53,24 +52,24 @@ export class ServerMockr {
     );
   }
 
-  when(...matchers: ContextMatcherInput[]): ExpectationConfigBuilder {
-    const builder = new ExpectationConfigBuilder(...matchers);
-    this.globalExpectationManager.addExpectation(builder);
-    return builder;
+  when(...matchers: ContextMatcherInput[]): Expectation {
+    const expectation = new Expectation(...matchers);
+    this.globalExpectationManager.addExpectation(expectation);
+    return expectation;
   }
 
   scenario(id: string) {
-    const builder = new ScenarioConfigBuilder(id);
-    this.scenarioManager.addScenario(builder);
-    return builder;
+    const scenario = new Scenario(id);
+    this.scenarioManager.addScenario(scenario);
+    return scenario;
   }
 
-  addExpectation(builder: ExpectationConfigBuilder) {
-    this.globalExpectationManager.addExpectation(builder);
+  addExpectation(expectation: Expectation) {
+    this.globalExpectationManager.addExpectation(expectation);
   }
 
-  addScenario(builder: ScenarioConfigBuilder) {
-    this.scenarioManager.addScenario(builder);
+  addScenario(scenario: Scenario) {
+    this.scenarioManager.addScenario(scenario);
   }
 
   startScenario(id: string, state?: StateValue) {

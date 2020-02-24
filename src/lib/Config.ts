@@ -1,7 +1,5 @@
-// tslint:disable-next-line
-import { ExpectationConfigBuilder } from "./config-builders/expectation";
-// tslint:disable-next-line
-import { ScenarioConfigBuilder } from "./config-builders/scenario";
+import { Expectation } from "./Expectation";
+import { Scenario } from "./Scenario";
 import { GlobalsValue } from "./Values";
 
 /*
@@ -10,12 +8,12 @@ import { GlobalsValue } from "./Values";
 
 export interface Config {
   controlServerPort: number;
-  expectations: ExpectationConfigBuilder[];
+  expectations: Expectation[];
   globals: GlobalsValue;
   logLevel: "info" | "error";
   mockServerPort: number;
   multipleActiveScenarios: boolean;
-  scenarios: ScenarioConfigBuilder[];
+  scenarios: Scenario[];
 }
 
 export interface InitialConfig extends Partial<Config> {}

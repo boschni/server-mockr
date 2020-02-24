@@ -1,20 +1,8 @@
-import MarkdownIt from "markdown-it";
-
-import { Config } from "./Config";
-import { ExpectationConfigBuilder } from "./config-builders/expectation";
-import { ResponseConfigBuilder } from "./config-builders/response";
-import { ContextMatcherInput, ExpectationRequestContext } from "./Expectation";
-import {
-  ExpectationManager,
-  ExpectationManagerRequestContext
-} from "./ExpectationManager";
-import { Logger } from "./Logger";
-import { ScenarioRequestLog } from "./RequestLogManager";
-import { RespondAction } from "./response-actions";
-import { clone } from "./utils/clone";
-import { createDefaultedState } from "./valueHelpers";
+import { ContextMatcherInput, Expectation } from "./Expectation";
+import { Response } from "./Response";
 import {
   GlobalsValue,
+  JSONSchemaDefinition,
   RequestValue,
   ResponseValue,
   StateConfig,
@@ -25,28 +13,9 @@ import {
  * TYPES
  */
 
-export interface ScenarioRequestContext {
-  scenarioRequestLogs: ScenarioRequestLog[];
-  request: RequestValue;
-  response: ResponseValue;
-}
-
-interface OnBootstrapScenarioContext {
-  globals: GlobalsValue;
-  req: RequestValue;
-  res: ResponseValue;
-  state: StateValue;
-}
-
-interface OnStartScenarioContext {
-  globals: GlobalsValue;
-  state: StateValue;
-  when: (...matchers: ContextMatcherInput[]) => ExpectationConfigBuilder;
-}
-
 export interface ScenarioConfig {
   description: string;
-  expectationBuilders: ExpectationConfigBuilder[];
+  expectations: Expectation[];
   id: string;
   onBootstrap?: OnBootstrapCallback;
   onStart?: OnStartCallback;
@@ -54,170 +23,82 @@ export interface ScenarioConfig {
   tags: string[];
 }
 
-export type OnBootstrapCallback = (
-  ctx: OnBootstrapScenarioContext
-) => ResponseConfigBuilder | void;
-
 export type OnStartCallback = (ctx: OnStartScenarioContext) => void;
 
+export interface OnStartScenarioContext {
+  globals: GlobalsValue;
+  scenario: Scenario;
+  state: StateValue;
+}
+
+export type OnBootstrapCallback = (
+  ctx: OnBootstrapScenarioContext
+) => Response | void;
+
+export interface OnBootstrapScenarioContext {
+  globals: GlobalsValue;
+  req: RequestValue;
+  res: ResponseValue;
+  state: StateValue;
+}
+
 /*
- * HELPERS
+ * FACTORY
  */
 
-const md = new MarkdownIt({
-  html: true
-});
+export function scenario(id: string) {
+  return new Scenario(id);
+}
 
 /*
  * SCENARIO
  */
 
 export class Scenario {
-  private active = false;
-  private expectationManager?: ExpectationManager;
+  private _config: ScenarioConfig = {
+    description: "",
+    expectations: [],
+    id: "",
+    stateConfigs: [],
+    tags: []
+  };
 
-  constructor(
-    private config: Config,
-    private logger: Logger,
-    private scenarioConfig: ScenarioConfig
-  ) {}
-
-  async start(state?: StateValue) {
-    this.active = true;
-
-    const expectationManager = new ExpectationManager(
-      this.config,
-      this.logger,
-      this.scenarioConfig.expectationBuilders
-    );
-
-    this.expectationManager = expectationManager;
-
-    const { stateConfigs, onStart } = this.scenarioConfig;
-
-    const defaultedState = createDefaultedState(state, stateConfigs);
-
-    if (onStart) {
-      const ctx: OnStartScenarioContext = {
-        globals: this.config.globals,
-        state: defaultedState,
-        when: (...matchers: ContextMatcherInput[]) => {
-          const builder = new ExpectationConfigBuilder(...matchers);
-          expectationManager.addExpectation(builder);
-          return builder;
-        }
-      };
-
-      onStart(ctx);
-    }
-
-    expectationManager.start(defaultedState);
+  constructor(id: string) {
+    this._config.id = id;
   }
 
-  stop() {
-    if (!this.active || !this.expectationManager) {
-      return;
-    }
-
-    this.active = false;
-    this.expectationManager.stop();
-    this.expectationManager = undefined;
+  description(description: string) {
+    this._config.description = description;
+    return this;
   }
 
-  async bootstrap(req: RequestValue, res: ResponseValue) {
-    if (!this.active || !this.expectationManager) {
-      return;
-    }
-
-    const onBootstrap = this.scenarioConfig.onBootstrap;
-
-    if (!onBootstrap) {
-      return;
-    }
-
-    const ctx: OnBootstrapScenarioContext = {
-      globals: this.config.globals,
-      req,
-      res,
-      state: this.expectationManager.getState()
-    };
-
-    const responseConfigBuilder = onBootstrap(ctx);
-
-    if (!responseConfigBuilder) {
-      return;
-    }
-
-    const expectationValue: ExpectationRequestContext = {
-      expectationRequestLogs: [],
-      globals: ctx.globals,
-      req: ctx.req,
-      res: ctx.res,
-      state: ctx.state,
-      times: 1
-    };
-
-    const config = responseConfigBuilder.getConfig();
-    const action = new RespondAction(config);
-    await action.execute(expectationValue);
+  tags(tags: string[]) {
+    this._config.tags = tags;
+    return this;
   }
 
-  async onRequest(ctx: ScenarioRequestContext): Promise<boolean> {
-    if (!this.active || !this.expectationManager) {
-      return false;
-    }
-
-    const scenarioRequestLog: ScenarioRequestLog = {
-      expectations: [],
-      id: this.scenarioConfig.id,
-      state: clone(this.getState())
-    };
-
-    ctx.scenarioRequestLogs.push(scenarioRequestLog);
-
-    const expectationManagerCtx: ExpectationManagerRequestContext = {
-      expectationRequestLogs: scenarioRequestLog.expectations,
-      request: ctx.request,
-      response: ctx.response
-    };
-
-    return this.expectationManager.onRequest(expectationManagerCtx);
+  state(name: string, schema: JSONSchemaDefinition) {
+    this._config.stateConfigs.push({ name, schema });
+    return this;
   }
 
-  getId(): string {
-    return this.scenarioConfig.id;
+  onBootstrap(cb: OnBootstrapCallback) {
+    this._config.onBootstrap = cb;
+    return this;
   }
 
-  getDescription(): string {
-    return this.scenarioConfig.description;
+  onStart(cb: OnStartCallback) {
+    this._config.onStart = cb;
+    return this;
   }
 
-  getFormattedDescription(): string {
-    let description = this.getDescription().trim();
-    if (typeof description === "string") {
-      for (const [key, value] of Object.entries(this.config.globals)) {
-        description = description.replace(`{{globals.${key}}}`, value);
-      }
-
-      description = md.render(description);
-    }
-
-    return description;
+  when(...matchers: ContextMatcherInput[]) {
+    const expectation = new Expectation(...matchers);
+    this._config.expectations.push(expectation);
+    return expectation;
   }
 
-  getTags(): string[] {
-    return this.scenarioConfig.tags;
-  }
-
-  getVisibleStateParams(): StateConfig[] {
-    return this.scenarioConfig.stateConfigs.filter(x => !x.schema.hidden);
-  }
-
-  getState(): StateValue {
-    return this.expectationManager?.getState() ?? {};
-  }
-
-  isActive(): boolean {
-    return this.active;
+  getConfig() {
+    return this._config;
   }
 }

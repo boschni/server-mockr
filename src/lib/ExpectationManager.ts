@@ -1,6 +1,9 @@
 import { Config } from "./Config";
-import { ExpectationConfigBuilder } from "./config-builders/expectation";
-import { Expectation, ExpectationRequestContext } from "./Expectation";
+import { Expectation } from "./Expectation";
+import {
+  ExpectationRequestContext,
+  ExpectationRunner
+} from "./ExpectationRunner";
 import { Logger } from "./Logger";
 import { ExpectationRequestLog } from "./RequestLogManager";
 import { RequestValue, ResponseValue, StateValue } from "./Values";
@@ -21,26 +24,18 @@ export interface ExpectationManagerRequestContext {
 
 export class ExpectationManager {
   private active = false;
-  private expectations: Expectation[] = [];
+  private expectationRunners: ExpectationRunner[] = [];
   private expectationState: StateValue = {};
 
-  constructor(
-    private config: Config,
-    private logger: Logger,
-    builders?: ExpectationConfigBuilder[]
-  ) {
-    if (builders) {
-      this.addExpectations(builders);
-    }
-  }
+  constructor(private config: Config, private logger: Logger) {}
 
   start(state?: StateValue) {
     this.active = true;
 
     this.expectationState = { ...state };
 
-    for (const expectation of this.expectations) {
-      expectation.start();
+    for (const runner of this.expectationRunners) {
+      runner.start();
     }
   }
 
@@ -49,35 +44,29 @@ export class ExpectationManager {
 
     this.expectationState = {};
 
-    for (const expectation of this.expectations) {
-      expectation.stop();
+    for (const runner of this.expectationRunners) {
+      runner.stop();
     }
   }
 
   clear() {
     this.expectationState = {};
-    this.expectations = [];
+    this.expectationRunners = [];
   }
 
-  addExpectation(builder: ExpectationConfigBuilder) {
-    const expectationConfig = builder.getConfig();
-
-    const expectation = new Expectation(
-      this.config,
-      this.logger,
-      expectationConfig
-    );
-
-    this.expectations.push(expectation);
-
-    if (this.active) {
-      expectation.start();
+  addExpectations(expectations: Expectation[]) {
+    for (const expectation of expectations) {
+      this.addExpectation(expectation);
     }
   }
 
-  addExpectations(builders: ExpectationConfigBuilder[]) {
-    for (const builder of builders) {
-      this.addExpectation(builder);
+  addExpectation(expectation: Expectation) {
+    const runner = new ExpectationRunner(this.config, this.logger, expectation);
+
+    this.expectationRunners.push(runner);
+
+    if (this.active) {
+      runner.start();
     }
   }
 
@@ -90,7 +79,7 @@ export class ExpectationManager {
       return false;
     }
 
-    for (const expectation of this.expectations) {
+    for (const runner of this.expectationRunners) {
       const expectationCtx: ExpectationRequestContext = {
         expectationRequestLogs: ctx.expectationRequestLogs,
         globals: this.config.globals,
@@ -100,7 +89,7 @@ export class ExpectationManager {
         times: 0
       };
 
-      const handled = await expectation.onRequest(expectationCtx);
+      const handled = await runner.onRequest(expectationCtx);
 
       if (handled) {
         return true;

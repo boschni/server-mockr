@@ -1,8 +1,8 @@
 import { Config } from "./Config";
-import { ScenarioConfigBuilder } from "./config-builders/scenario";
 import { Logger } from "./Logger";
 import { ScenarioRequestLog } from "./RequestLogManager";
-import { Scenario, ScenarioRequestContext } from "./Scenario";
+import { Scenario } from "./Scenario";
+import { ScenarioRequestContext, ScenarioRunner } from "./ScenarioRunner";
 import { RequestValue, ResponseValue, StateValue } from "./Values";
 
 /*
@@ -20,8 +20,8 @@ export interface ScenarioManagerRequestContext {
  */
 
 export class ScenarioManager {
-  private scenarios: Scenario[] = [];
   private active = false;
+  private scenarioRunners: ScenarioRunner[] = [];
 
   constructor(private config: Config, private logger: Logger) {}
 
@@ -35,19 +35,18 @@ export class ScenarioManager {
   }
 
   clear() {
-    this.scenarios = [];
+    this.scenarioRunners = [];
   }
 
-  addScenario(builder: ScenarioConfigBuilder) {
-    const scenarioConfig = builder.getConfig();
-    const scenario = new Scenario(this.config, this.logger, scenarioConfig);
-    this.scenarios.push(scenario);
+  addScenario(scenario: Scenario) {
+    const runner = new ScenarioRunner(this.config, this.logger, scenario);
+    this.scenarioRunners.push(runner);
   }
 
   async startScenario(id: string, state?: StateValue) {
-    const scenario = this.getScenario(id);
+    const runner = this.getScenarioRunner(id);
 
-    if (!scenario) {
+    if (!runner) {
       return;
     }
 
@@ -55,23 +54,24 @@ export class ScenarioManager {
       this.stopScenarios();
     }
 
-    if (scenario.isActive()) {
-      scenario.stop();
+    if (runner.isActive()) {
+      runner.stop();
     }
 
-    return scenario.start(state);
+    return runner.start(state);
   }
 
   stopScenario(id: string) {
-    const scenario = this.getScenario(id);
-    if (scenario && scenario.isActive()) {
-      scenario.stop();
+    const runner = this.getScenarioRunner(id);
+
+    if (runner && runner.isActive()) {
+      runner.stop();
     }
   }
 
   stopScenarios() {
-    for (const scenario of this.scenarios) {
-      scenario.stop();
+    for (const runner of this.scenarioRunners) {
+      runner.stop();
     }
   }
 
@@ -80,12 +80,12 @@ export class ScenarioManager {
     this.startScenario(id);
   }
 
-  getScenarios() {
-    return this.scenarios;
+  getScenarioRunners() {
+    return this.scenarioRunners;
   }
 
-  getScenario(id: string) {
-    return this.scenarios.find(x => x.getId() === id);
+  getScenarioRunner(id: string) {
+    return this.scenarioRunners.find(x => x.getId() === id);
   }
 
   async onRequest(ctx: ScenarioManagerRequestContext): Promise<boolean> {
@@ -93,14 +93,14 @@ export class ScenarioManager {
       return false;
     }
 
-    for (const scenario of this.scenarios) {
+    for (const runner of this.scenarioRunners) {
       const scenarioRequestContext: ScenarioRequestContext = {
         request: ctx.request,
         response: ctx.response,
         scenarioRequestLogs: ctx.scenarioRequestLogs
       };
 
-      const handled = await scenario.onRequest(scenarioRequestContext);
+      const handled = await runner.onRequest(scenarioRequestContext);
 
       if (handled) {
         return true;

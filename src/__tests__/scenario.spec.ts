@@ -112,8 +112,8 @@ describe("scenario()", () => {
     });
 
     test("should be able to add expectations in onStart callback", async () => {
-      mockr.scenario("id").onStart(({ when }) => {
-        when("/test").respond("ok");
+      mockr.scenario("id").onStart(({ scenario }) => {
+        scenario.when("/test").respond("ok");
       });
       mockr.startScenario("id");
       const res = await get("/test");
@@ -121,13 +121,14 @@ describe("scenario()", () => {
     });
 
     test("expectations added in onStart not persist on restart", async () => {
-      mockr.scenario("id").onStart(({ when }) => {
-        when("/test")
+      mockr.scenario("id").onStart(({ scenario }) => {
+        scenario
+          .when("/test")
           .afterRespond(ctx =>
             setState("count", ctx.state.count ? ctx.state.count + 1 : 1)
           )
           .next();
-        when("/test", state("count", 2)).respond("ok");
+        scenario.when("/test", state("count", 2)).respond("ok");
       });
       mockr.startScenario("id");
       const res = await get("/test");

@@ -1,26 +1,15 @@
-import { Action } from "./actions/Action";
-import { Config } from "./Config";
-import { response, ResponseConfigBuilder } from "./config-builders/response";
-import { ContextMatcher, request } from "./context-matchers";
-import { Logger } from "./Logger";
-import { ExpectationRequestLog } from "./RequestLogManager";
-import { RespondAction } from "./response-actions";
-import { isMatchResult, isPassed, MatchResult } from "./value-matchers/MatchFn";
+import { Action } from "./actions";
+import { ContextMatcher } from "./context-matchers";
+import { MatchResult } from "./value-matchers";
 import { ExpectationValue } from "./Values";
 
 /*
  * TYPES
  */
 
-export type RespondInput =
-  | ResponseConfigBuilder
-  | RespondFactory
-  | string
-  | object;
+export type RespondInput = Response | RespondFactory | string | object;
 
-type RespondFactory = (
-  ctx: ExpectationValue
-) => ResponseConfigBuilder | string | object;
+type RespondFactory = (ctx: ExpectationValue) => Response | string | object;
 
 export type ContextMatcherInput =
   | ContextMatcher
@@ -32,11 +21,8 @@ type ContextMatcherFactory = (
 ) => MatchResult | ContextMatcher;
 
 export type ActionInput = Action | ActionFn;
-type ActionFn = (ctx: ExpectationRequestContext) => Action | void;
 
-export interface ExpectationRequestContext extends ExpectationValue {
-  expectationRequestLogs: ExpectationRequestLog[];
-}
+type ActionFn = (ctx: ExpectationValue) => Action | void;
 
 export interface ExpectationConfig {
   afterRespondActions: ActionInput[];
@@ -49,140 +35,60 @@ export interface ExpectationConfig {
 }
 
 /*
+ * FACTORY
+ */
+
+export function expect(...matchers: ContextMatcherInput[]) {
+  return new Expectation(...matchers);
+}
+
+/*
  * EXPECTATION
  */
 
 export class Expectation {
-  private static id = 0;
-  private active = false;
-  private id: string | number;
-  private timesMatched = 0;
+  private _config: ExpectationConfig = {
+    afterRespondActions: [],
+    next: false,
+    verifyMatchers: [],
+    whenMatchers: []
+  };
 
-  constructor(
-    protected config: Config,
-    private logger: Logger,
-    private expectationConfig: ExpectationConfig
-  ) {
-    this.id = this.expectationConfig.id || ++Expectation.id;
+  constructor(...matchers: ContextMatcherInput[]) {
+    this._config.whenMatchers.push(...matchers);
   }
 
-  start() {
-    this.active = true;
+  id(id: string) {
+    this._config.id = id;
+    return this;
   }
 
-  stop() {
-    this.active = false;
-    this.timesMatched = 0;
+  verify(...matchers: ContextMatcherInput[]) {
+    this._config.verifyMatchers.push(...matchers);
+    return this;
   }
 
-  async onRequest(ctx: ExpectationRequestContext): Promise<boolean> {
-    if (!this.active) {
-      return false;
-    }
-
-    const log: ExpectationRequestLog = {
-      id: this.id
-    };
-    ctx.expectationRequestLogs.push(log);
-
-    const {
-      afterRespondActions,
-      next,
-      respondInput,
-      verifyMatchers,
-      verifyFailedRespondInput,
-      whenMatchers
-    } = this.expectationConfig;
-
-    ctx.times = this.timesMatched;
-
-    const matchResult = await this.match(whenMatchers, ctx);
-    log.matchResult = matchResult;
-
-    if (!isPassed(matchResult)) {
-      return false;
-    }
-
-    this.timesMatched++;
-
-    const verifyResult = await this.match(verifyMatchers, ctx);
-    log.verifyResult = verifyResult;
-
-    if (!isPassed(verifyResult)) {
-      this.logger.log("info", "Verify failed because:");
-      this.logger.log("info", verifyResult);
-
-      if (verifyFailedRespondInput !== undefined) {
-        await this.response(verifyFailedRespondInput, ctx);
-      } else {
-        await this.response(response(verifyResult).status(400), ctx);
-      }
-
-      return true;
-    }
-
-    if (respondInput !== undefined) {
-      await this.response(respondInput, ctx);
-    }
-
-    await this.afterRespond(afterRespondActions, ctx);
-
-    return next ? false : true;
+  verifyFailedRespond(input: RespondInput) {
+    this._config.verifyFailedRespondInput = input;
+    return this;
   }
 
-  private async match(
-    values: ContextMatcherInput[],
-    ctx: ExpectationRequestContext
-  ): Promise<MatchResult> {
-    let result: MatchResult = true;
-
-    if (!values.length) {
-      return result;
-    }
-
-    for (const value of values) {
-      const output = typeof value === "function" ? value(ctx) : value;
-
-      if (isMatchResult(output)) {
-        result = output;
-      } else if (typeof output === "string") {
-        result = request(output).match(ctx);
-      } else {
-        result = output.match(ctx);
-      }
-
-      if (!isPassed(result)) {
-        return result;
-      }
-    }
-
-    return result;
+  respond(input: RespondInput) {
+    this._config.respondInput = input;
+    return this;
   }
 
-  private async response(
-    value: RespondInput,
-    ctx: ExpectationRequestContext
-  ): Promise<void> {
-    value = typeof value === "function" ? value(ctx) : value;
-
-    if (!(value instanceof ResponseConfigBuilder)) {
-      value = new ResponseConfigBuilder(value);
-    }
-
-    const config = (value as ResponseConfigBuilder).getConfig();
-    const action = new RespondAction(config);
-    await action.execute(ctx);
+  afterRespond(...actions: ActionInput[]) {
+    this._config.afterRespondActions = actions;
+    return this;
   }
 
-  private async afterRespond(
-    values: ActionInput[],
-    ctx: ExpectationRequestContext
-  ): Promise<void> {
-    for (const value of values) {
-      const action = typeof value === "function" ? value(ctx) : value;
-      if (action) {
-        await action.execute(ctx);
-      }
-    }
+  next() {
+    this._config.next = true;
+    return this;
+  }
+
+  getConfig() {
+    return this._config;
   }
 }

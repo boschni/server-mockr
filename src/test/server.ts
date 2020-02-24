@@ -49,34 +49,38 @@ Steps:
       `${ctx.globals.mockServerUrl}/${ctx.state.locale}/todos?test=a&test=b`
     )
   )
-  .onStart(({ when }) => {
+  .onStart(({ scenario }) => {
     let count = 0;
 
-    when(request("/count"))
+    scenario
+      .when(request("/count"))
       .respond(() => response(count))
       .afterRespond(() => {
         count++;
       });
 
-    when(request("/times"), times(1)).respond(response(1));
-    when(request("/times"), times(1)).respond(response(2));
-    when(request("/times"), times(isGreaterThanOrEqual(0))).respond(
-      response(3)
-    );
+    scenario.when(request("/times"), times(1)).respond(response(1));
+    scenario.when(request("/times"), times(1)).respond(response(2));
+    scenario
+      .when(request("/times"), times(isGreaterThanOrEqual(0)))
+      .respond(response(3));
 
-    when(request(anyOf(isEqualTo("/any-1"), isEqualTo("/any-2")))).respond(
-      response("any")
-    );
+    scenario
+      .when(request(anyOf(isEqualTo("/any-1"), isEqualTo("/any-2"))))
+      .respond(response("any"));
 
-    when(
-      request("/en-gb/todos/:id")
-        .method("GET")
-        .param("id", "1")
-        .param("id", isEqualTo("1")),
-      times(2)
-    ).respond(({ req }) => response().json({ id: req.params.id }));
+    scenario
+      .when(
+        request("/en-gb/todos/:id")
+          .method("GET")
+          .param("id", "1")
+          .param("id", isEqualTo("1")),
+        times(2)
+      )
+      .respond(({ req }) => response().json({ id: req.params.id }));
 
-    when(request("/en-gb/todos"), state("todos", undefined))
+    scenario
+      .when(request("/en-gb/todos"), state("todos", undefined))
       .verify(request().query("test", ["a", "b"]))
       .respond(ctx =>
         response()

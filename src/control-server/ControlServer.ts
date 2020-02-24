@@ -81,7 +81,7 @@ export class ControlServer {
    */
   private handleGetRoot = async (_req: Request, res: Response) => {
     try {
-      const scenarios = this.scenarioManager.getScenarios();
+      const scenarios = this.scenarioManager.getScenarioRunners();
 
       const data = {
         scenarioManager: this.scenarioManager,
@@ -112,7 +112,7 @@ export class ControlServer {
    * This handler lists all available scenarios.
    */
   private handleGetScenarios = async (_req: Request, res: Response) => {
-    const scenarios = this.scenarioManager.getScenarios();
+    const scenarios = this.scenarioManager.getScenarioRunners();
 
     const json = JSON.parse(
       JSON.stringify(scenarios, (_, val) =>
@@ -129,12 +129,12 @@ export class ControlServer {
   private handleGetScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    if (!this.scenarioManager.getScenario(id)) {
+    const scenario = this.scenarioManager.getScenarioRunner(id);
+
+    if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
-
-    const scenario = this.scenarioManager.getScenario(id);
 
     res.json(scenario);
   };
@@ -145,7 +145,9 @@ export class ControlServer {
   private handleGetStartScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    if (!this.scenarioManager.getScenario(id)) {
+    const scenario = this.scenarioManager.getScenarioRunner(id);
+
+    if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
@@ -165,7 +167,9 @@ export class ControlServer {
   private handleGetStopScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    if (!this.scenarioManager.getScenario(id)) {
+    const scenario = this.scenarioManager.getScenarioRunner(id);
+
+    if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
@@ -182,7 +186,9 @@ export class ControlServer {
   private handleGetResetScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    if (!this.scenarioManager.getScenario(id)) {
+    const scenario = this.scenarioManager.getScenarioRunner(id);
+
+    if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
@@ -199,7 +205,7 @@ export class ControlServer {
   private handleGetBootstrapScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const scenario = this.scenarioManager.getScenario(id);
+    const scenario = this.scenarioManager.getScenarioRunner(id);
 
     if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
@@ -225,7 +231,7 @@ export class ControlServer {
   ) => {
     const { id } = req.params;
 
-    const scenario = this.scenarioManager.getScenario(id);
+    const scenario = this.scenarioManager.getScenarioRunner(id);
 
     if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
