@@ -36,7 +36,7 @@ describe("verify()", () => {
         .verify("/test-2")
         .respond("ok");
       const res = await get("/test");
-      expect(res.body.message).toEqual("matches request");
+      expect(res.body.verifyResult.message).toEqual("matches request");
       expect(res.status).toEqual(400);
     });
 

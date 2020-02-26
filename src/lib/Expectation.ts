@@ -1,5 +1,6 @@
 import { Action } from "./actions";
 import { ContextMatcher } from "./context-matchers";
+import { Response } from "./Response";
 import { MatchResult } from "./value-matchers";
 import { ExpectationValue } from "./Values";
 
@@ -58,32 +59,44 @@ export class Expectation {
     this._config.whenMatchers.push(...matchers);
   }
 
-  id(id: string) {
+  id(id: string): this {
     this._config.id = id;
     return this;
   }
 
-  verify(...matchers: ContextMatcherInput[]) {
+  verify(...matchers: ContextMatcherInput[]): this {
     this._config.verifyMatchers.push(...matchers);
     return this;
   }
 
-  verifyFailedRespond(input: RespondInput) {
+  verifyFailedRespond(input: RespondInput): this {
     this._config.verifyFailedRespondInput = input;
     return this;
   }
 
-  respond(input: RespondInput) {
-    this._config.respondInput = input;
+  respond(code?: number): this;
+  respond(code?: number, input?: RespondInput): this;
+  respond(input?: RespondInput): this;
+  respond(codeOrBody?: number | RespondInput, input?: RespondInput): this {
+    if (
+      typeof codeOrBody === "number" &&
+      (typeof input === "undefined" ||
+        typeof input === "string" ||
+        typeof input === "object")
+    ) {
+      this._config.respondInput = new Response(input).status(codeOrBody);
+    } else if (typeof codeOrBody !== "number") {
+      this._config.respondInput = codeOrBody;
+    }
     return this;
   }
 
-  afterRespond(...actions: ActionInput[]) {
+  afterRespond(...actions: ActionInput[]): this {
     this._config.afterRespondActions = actions;
     return this;
   }
 
-  next() {
+  next(): this {
     this._config.next = true;
     return this;
   }

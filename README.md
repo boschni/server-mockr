@@ -335,6 +335,18 @@ mockr.when(request().url("/resources?limit=100&order=asc")).respond("ok");
 
 #### Response status
 
+Using the `respond` method to specify the response status code:
+
+```js
+mockr.when("/resource").respond(404);
+```
+
+Using the `respond` method to specify the response status code and body:
+
+```js
+mockr.when("/resource").respond(404, "Not Found");
+```
+
 Use the `status` method to specify the response status code:
 
 ```js

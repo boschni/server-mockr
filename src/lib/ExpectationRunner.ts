@@ -89,7 +89,7 @@ export class ExpectationRunner {
       if (verifyFailedRespondInput !== undefined) {
         await this.response(verifyFailedRespondInput, ctx);
       } else {
-        await this.response(response(verifyResult).status(400), ctx);
+        await this.response(response({ verifyResult }).status(400), ctx);
       }
 
       return true;

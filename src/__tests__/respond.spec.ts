@@ -62,6 +62,27 @@ describe("respond()", () => {
       const res = await get("/test");
       expect(res.body).toEqual({ a: "b" });
     });
+
+    test("should respond with a status code when only a status code is set", async () => {
+      mockr.when("/test").respond(500);
+      const res = await get("/test");
+      expect(res.text).toEqual("");
+      expect(res.status).toEqual(500);
+    });
+
+    test("should respond with a 400 json response when a status code and json body is set", async () => {
+      mockr.when("/test").respond(400, { a: "b" });
+      const res = await get("/test");
+      expect(res.body).toEqual({ a: "b" });
+      expect(res.status).toEqual(400);
+    });
+
+    test("should respond with a 400 text response when a status code and text body is set", async () => {
+      mockr.when("/test").respond(500, "ok");
+      const res = await get("/test");
+      expect(res.text).toEqual("ok");
+      expect(res.status).toEqual(500);
+    });
   });
 
   /*
