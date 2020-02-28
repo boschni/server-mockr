@@ -26,7 +26,7 @@ Mock HTTP APIs for rapid development and reliable testing.
     - [Response delay](#response-delay)
     - [Response redirect](#response-redirect)
   - [Specifying times](#specifying-times)
-  - [Specifying data for all responses](#specifying-data-for-all-responses)
+  - [Specifying behaviours for all responses](#specifying-behaviours-for-all-responses)
   - [Verifying requests](#verifying-requests)
   - [Scenarios](#scenarios)
     - [Starting scenarios](#starting-scenarios)
@@ -455,12 +455,12 @@ mockr.when("/resource", times(1)).respond("First time");
 mockr.when("/resource", times(1)).respond("Second time");
 ```
 
-### Specifying data for all responses
+### Specifying behaviours for all responses
 
-It is possible to set response data for all responses using the `next` method.
+It is possible to set response behaviours for all responses using the `next` method.
 
 When calling the `next` method, the expectation will not respond.
-Instead, it will set the specified response data and proceed to the next matching expectation.
+Instead, it will set the specified response behaviour and proceed to the next matching expectation.
 
 ```js
 mockr
@@ -493,6 +493,17 @@ mockr
   .when(request().post("/resources"))
   .verify(request().body({ firstName: "First" }))
   .verifyFailedRespond(response("Server Error").status(500))
+  .respond("ok");
+```
+
+Conditional verification:
+
+```js
+mockr
+  .when(request().post("/resources"))
+  .verify(({ req }) =>
+    req.headers["no-validate"] ? true : request().body({ firstName: "First" })
+  )
   .respond("ok");
 ```
 

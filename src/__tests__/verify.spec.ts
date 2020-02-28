@@ -1,7 +1,7 @@
 import "jest";
 
-import { response, ServerMockr } from "../";
-import { get, setup } from "./utils";
+import { request, response, ServerMockr } from "../";
+import { get, post, setup } from "./utils";
 
 describe("verify()", () => {
   let mockr: ServerMockr;
@@ -38,6 +38,24 @@ describe("verify()", () => {
       const res = await get("/test");
       expect(res.body.verifyResult.message).toEqual("matches request");
       expect(res.status).toEqual(400);
+    });
+
+    test("should be able to do conditional validation", async () => {
+      mockr
+        .when("/test")
+        .verify(({ req }) =>
+          req.headers["no-validate"] ? true : request().body({ a: "b" })
+        )
+        .respond("ok");
+
+      const res = await post("/test")
+        .set("no-validate", "true")
+        .send({ a: "c" });
+      expect(res.status).toEqual(200);
+
+      const res2 = await post("/test").send({ a: "c" });
+      expect(res2.body.verifyResult.message).toEqual("matches request");
+      expect(res2.status).toEqual(400);
     });
 
     test("should send custom verify failed response if defined", async () => {
