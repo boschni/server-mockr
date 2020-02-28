@@ -1,7 +1,7 @@
 import cookie, { CookieSerializeOptions } from "cookie";
 
 import { ExpectationValue } from "../Values";
-import { ResponseAction } from "./ResponseAction";
+import { RespondAction } from "./RespondAction";
 
 /*
  * TYPES
@@ -20,12 +20,8 @@ export interface CookiesMap {
  * ACTION
  */
 
-export class SetCookiesAction implements ResponseAction {
-  private _map: CookiesMap;
-
-  constructor(map: CookiesMap) {
-    this._map = map;
-  }
+export class SetCookiesAction implements RespondAction {
+  constructor(private map: CookiesMap) {}
 
   async execute(ctx: ExpectationValue): Promise<void> {
     const headerValue = ctx.res.headers["Set-Cookie"] || [];
@@ -33,8 +29,8 @@ export class SetCookiesAction implements ResponseAction {
       ? headerValue
       : [headerValue];
 
-    const additionalHeaderValues = Object.keys(this._map).map(name => {
-      const mapValue = this._map[name];
+    const additionalHeaderValues = Object.keys(this.map).map(name => {
+      const mapValue = this.map[name];
       const value = typeof mapValue === "string" ? mapValue : mapValue.value;
       const options =
         typeof mapValue === "string" ? undefined : mapValue.options;

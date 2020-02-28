@@ -8,9 +8,13 @@ import { ExpectationValue } from "./Values";
  * TYPES
  */
 
-export type RespondInput = Response | RespondFactory | string | object;
+type RespondValue = Response | string | object;
 
-type RespondFactory = (ctx: ExpectationValue) => Response | string | object;
+export type RespondInput = RespondValue | RespondFactory;
+
+type RespondFactory = (
+  ctx: ExpectationValue
+) => RespondValue | Promise<RespondValue>;
 
 export type ContextMatcherInput =
   | ContextMatcher

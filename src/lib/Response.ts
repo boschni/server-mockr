@@ -1,5 +1,15 @@
-import { ResponseConfig } from "./response-actions/Respond";
-import { CookiesMapObject } from "./response-actions/SetCookies";
+import {
+  CookiesMap,
+  CookiesMapObject,
+  DelayAction,
+  DelayConfig,
+  HeadersMap,
+  SetBodyAction,
+  SetCookiesAction,
+  SetHeadersAction,
+  SetStatusAction
+} from "./respond-actions";
+import { ExpectationValue } from "./Values";
 
 /*
  * FACTORY
@@ -14,11 +24,11 @@ export function response(body?: unknown) {
  */
 
 export class Response {
-  private _config: ResponseConfig = {
-    cookies: {},
-    headers: {},
-    status: 200
-  };
+  private _body?: string;
+  private _cookies: CookiesMap = {};
+  private _delay?: DelayConfig;
+  private _headers: HeadersMap = {};
+  private _status = 200;
 
   constructor(body?: unknown) {
     if (typeof body === "string") {
@@ -29,7 +39,7 @@ export class Response {
   }
 
   status(code: number): this {
-    this._config.status = code;
+    this._status = code;
     return this;
   }
 
@@ -37,38 +47,38 @@ export class Response {
   delay(min: number): this;
   delay(min: number, max?: number) {
     if (typeof max === "number") {
-      this._config.delay = { min, max };
+      this._delay = { min, max };
     } else {
-      this._config.delay = { exact: min };
+      this._delay = { exact: min };
     }
     return this;
   }
 
   redirect(url: string): this {
-    this._config.status = 302;
-    this._config.headers.Location = url;
+    this._status = 302;
+    this._headers.Location = url;
     return this;
   }
 
   body(body: string): this {
-    this._config.body = body;
+    this._body = body;
     return this;
   }
 
   text(body: string): this {
-    this._config.body = body;
+    this._body = body;
     this.header("Content-Type", "text/plain");
     return this;
   }
 
   json(json: unknown): this {
-    this._config.body = JSON.stringify(json);
+    this._body = JSON.stringify(json);
     this.header("Content-Type", "application/json");
     return this;
   }
 
   header(name: string, value: string): this {
-    this._config.headers[name] = value;
+    this._headers[name] = value;
     return this;
   }
 
@@ -77,11 +87,35 @@ export class Response {
     value: string,
     options?: CookiesMapObject["options"]
   ): this {
-    this._config.cookies[name] = options ? { options, value } : value;
+    this._cookies[name] = options ? { options, value } : value;
     return this;
   }
 
-  getConfig() {
-    return this._config;
+  async apply(ctx: ExpectationValue): Promise<ExpectationValue> {
+    try {
+      const setHeaders = new SetHeadersAction(this._headers);
+      await setHeaders.execute(ctx);
+
+      const setCookies = new SetCookiesAction(this._cookies);
+      await setCookies.execute(ctx);
+
+      const setBody = new SetBodyAction(this._body);
+      await setBody.execute(ctx);
+
+      const setStatus = new SetStatusAction(this._status);
+      await setStatus.execute(ctx);
+
+      if (this._delay) {
+        const delayAction = new DelayAction(this._delay);
+        await delayAction.execute(ctx);
+      }
+    } catch (err) {
+      // tslint:disable-next-line: no-console
+      console.error(err);
+      ctx.res.status = 500;
+      ctx.res.body = String(err);
+    }
+
+    return ctx;
   }
 }

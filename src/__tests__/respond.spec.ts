@@ -63,6 +63,29 @@ describe("respond()", () => {
       expect(res.body).toEqual({ a: "b" });
     });
 
+    test("should respond with a 200 text response when given a function that returns a promise resolving in a string", async () => {
+      mockr
+        .when("/test")
+        .respond(
+          () => new Promise(resolve => setTimeout(() => resolve("ok"), 100))
+        );
+      const res = await get("/test");
+      expect(res.text).toEqual("ok");
+    });
+
+    test("should respond with a matching response when given a function that returns a response builder", async () => {
+      mockr
+        .when("/test")
+        .respond(
+          () =>
+            new Promise(resolve =>
+              setTimeout(() => resolve(response({ a: "b" })), 100)
+            )
+        );
+      const res = await get("/test");
+      expect(res.body).toEqual({ a: "b" });
+    });
+
     test("should respond with a status code when only a status code is set", async () => {
       mockr.when("/test").respond(500);
       const res = await get("/test");
@@ -171,7 +194,7 @@ describe("respond()", () => {
       const res = await get("/test");
       const duration = Date.now() - start;
       expect(res.text).toEqual("ok");
-      expect(duration).toBeLessThan(200);
+      expect(duration).toBeLessThan(150);
     });
 
     test("should respond with correct delay", async () => {
@@ -190,7 +213,7 @@ describe("respond()", () => {
       const duration = Date.now() - start;
       expect(res.text).toEqual("ok");
       expect(duration).toBeGreaterThanOrEqual(200);
-      expect(duration).toBeLessThanOrEqual(400);
+      expect(duration).toBeLessThanOrEqual(450);
     });
   });
 });

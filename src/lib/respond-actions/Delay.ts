@@ -1,5 +1,5 @@
 import { ExpectationValue } from "../Values";
-import { ResponseAction } from "./ResponseAction";
+import { RespondAction } from "./RespondAction";
 
 /*
  * TYPES
@@ -15,7 +15,7 @@ export interface DelayConfig {
  * ACTION
  */
 
-export class DelayAction implements ResponseAction {
+export class DelayAction implements RespondAction {
   constructor(private config: DelayConfig) {}
 
   async execute(_ctx: ExpectationValue): Promise<void> {

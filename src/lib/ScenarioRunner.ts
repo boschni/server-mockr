@@ -8,7 +8,6 @@ import {
 import { ExpectationRequestContext } from "./ExpectationRunner";
 import { Logger } from "./Logger";
 import { ScenarioRequestLog } from "./RequestLogManager";
-import { RespondAction } from "./response-actions";
 import { Scenario } from "./Scenario";
 import {
   OnBootstrapScenarioContext,
@@ -110,9 +109,9 @@ export class ScenarioRunner {
       state: this.expectationManager.getState()
     };
 
-    const responseConfigBuilder = onBootstrap(ctx);
+    const response = onBootstrap(ctx);
 
-    if (!responseConfigBuilder) {
+    if (!response) {
       return;
     }
 
@@ -125,9 +124,7 @@ export class ScenarioRunner {
       times: 1
     };
 
-    const config = responseConfigBuilder.getConfig();
-    const action = new RespondAction(config);
-    await action.execute(expectationValue);
+    await response.apply(expectationValue);
   }
 
   async onRequest(ctx: ScenarioRequestContext): Promise<boolean> {

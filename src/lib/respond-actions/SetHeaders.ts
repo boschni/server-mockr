@@ -1,5 +1,5 @@
 import { ExpectationValue } from "../Values";
-import { ResponseAction } from "./ResponseAction";
+import { RespondAction } from "./RespondAction";
 
 /*
  * TYPES
@@ -13,16 +13,12 @@ export interface HeadersMap {
  * ACTION
  */
 
-export class SetHeadersAction implements ResponseAction {
-  private _map: HeadersMap;
-
-  constructor(map: HeadersMap) {
-    this._map = map;
-  }
+export class SetHeadersAction implements RespondAction {
+  constructor(private map: HeadersMap) {}
 
   async execute(ctx: ExpectationValue): Promise<void> {
-    for (const name of Object.keys(this._map)) {
-      const appendValue = this._map[name];
+    for (const name of Object.keys(this.map)) {
+      const appendValue = this.map[name];
 
       if (appendValue === undefined) {
         continue;

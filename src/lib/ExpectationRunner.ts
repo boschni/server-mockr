@@ -10,7 +10,6 @@ import {
 import { Logger } from "./Logger";
 import { ExpectationRequestLog } from "./RequestLogManager";
 import { response, Response } from "./Response";
-import { RespondAction } from "./response-actions";
 import { isMatchResult, isPassed, MatchResult } from "./value-matchers";
 import { ExpectationValue } from "./Values";
 
@@ -87,16 +86,16 @@ export class ExpectationRunner {
       this.logger.log("info", verifyResult);
 
       if (verifyFailedRespondInput !== undefined) {
-        await this.response(verifyFailedRespondInput, ctx);
+        await this.respond(verifyFailedRespondInput, ctx);
       } else {
-        await this.response(response({ verifyResult }).status(400), ctx);
+        await this.respond(response({ verifyResult }).status(400), ctx);
       }
 
       return true;
     }
 
     if (respondInput !== undefined) {
-      await this.response(respondInput, ctx);
+      await this.respond(respondInput, ctx);
     }
 
     await this.afterRespond(afterRespondActions, ctx);
@@ -133,19 +132,25 @@ export class ExpectationRunner {
     return result;
   }
 
-  private async response(
+  private async respond(
     value: RespondInput,
     ctx: ExpectationRequestContext
   ): Promise<void> {
-    value = typeof value === "function" ? value(ctx) : value;
-
-    if (!(value instanceof Response)) {
-      value = new Response(value);
+    if (typeof value === "function") {
+      value = value(ctx);
     }
 
-    const config = (value as Response).getConfig();
-    const action = new RespondAction(config);
-    await action.execute(ctx);
+    if (value instanceof Promise) {
+      try {
+        value = await value;
+      } catch {
+        value = "";
+      }
+    }
+
+    const res = value instanceof Response ? value : new Response(value);
+
+    await res.apply(ctx);
   }
 
   private async afterRespond(

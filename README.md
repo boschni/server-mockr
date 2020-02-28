@@ -387,6 +387,17 @@ mockr
   .respond(({ req }) => response({ id: req.params.id });
 ```
 
+Using a promise:
+
+```js
+mockr
+  .when("/resources/:id")
+  .respond(({ req }) => {
+    const resource = await fetchResource(req.params.id);
+    return response(resource);
+  });
+```
+
 #### Response headers
 
 Use the `header` method to specify response headers:
