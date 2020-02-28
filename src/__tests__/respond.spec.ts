@@ -180,7 +180,17 @@ describe("respond()", () => {
       const res = await get("/test");
       const duration = Date.now() - start;
       expect(res.text).toEqual("ok");
-      expect(duration).toBeGreaterThan(200);
+      expect(duration).toBeGreaterThanOrEqual(200);
+    });
+
+    test("should respond between a minimum and maximum delay", async () => {
+      mockr.when("/test").respond(response("ok").delay(200, 400));
+      const start = Date.now();
+      const res = await get("/test");
+      const duration = Date.now() - start;
+      expect(res.text).toEqual("ok");
+      expect(duration).toBeGreaterThanOrEqual(200);
+      expect(duration).toBeLessThanOrEqual(400);
     });
   });
 });

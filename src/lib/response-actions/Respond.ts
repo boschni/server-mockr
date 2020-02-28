@@ -1,5 +1,5 @@
 import { ExpectationValue } from "../Values";
-import { DelayAction } from "./Delay";
+import { DelayAction, DelayConfig } from "./Delay";
 import { ResponseAction } from "./ResponseAction";
 import { SetBodyAction } from "./SetBody";
 import { CookiesMap, SetCookiesAction } from "./SetCookies";
@@ -13,7 +13,7 @@ import { SetStatusAction } from "./SetStatus";
 export interface ResponseConfig {
   body?: string;
   cookies: CookiesMap;
-  delay?: number;
+  delay?: DelayConfig;
   headers: HeadersMap;
   status?: number;
 }

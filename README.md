@@ -415,10 +415,16 @@ mockr
 
 #### Response delay
 
-Use the `delay` method to delay a response:
+Use the `delay` method to delay a response in miliseconds:
 
 ```js
 mockr.when("/resource").respond(response("ok").delay(1000));
+```
+
+Use the second argument to specify a minimum and maximum delay:
+
+```js
+mockr.when("/resource").respond(response("ok").delay(1000, 2000));
 ```
 
 #### Response redirect
