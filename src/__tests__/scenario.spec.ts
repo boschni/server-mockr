@@ -28,7 +28,7 @@ describe("scenario()", () => {
         .respond("ok");
       mockr.startScenario("id");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when not started", async () => {
@@ -47,7 +47,7 @@ describe("scenario()", () => {
         .respond("ok");
       mockr.startScenario("id");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
       mockr.stopScenario("id");
       const res2 = await get("/test");
       expect(res2.status).toEqual(404);
@@ -60,7 +60,7 @@ describe("scenario()", () => {
         .respond("ok");
       mockr.startScenario("id", { language: "nl" });
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
       mockr.stopScenario("id");
       mockr.startScenario("id");
       const res2 = await get("/test");
@@ -75,7 +75,7 @@ describe("scenario()", () => {
         .respond("ok");
       mockr.startScenario("id");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match if default state does not match", async () => {
@@ -97,7 +97,7 @@ describe("scenario()", () => {
         .respond("ok");
       mockr.startScenario("id", { language: "en" });
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should match multiple expectations", async () => {
@@ -106,9 +106,9 @@ describe("scenario()", () => {
       scenario.when("/test-2").respond("ok");
       mockr.startScenario("id");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
       const res2 = await get("/test-2");
-      expect(res2.text).toEqual("ok");
+      expect(await res2.text()).toEqual("ok");
     });
 
     test("should be able to add expectations in onStart callback", async () => {
@@ -117,7 +117,7 @@ describe("scenario()", () => {
       });
       mockr.startScenario("id");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("expectations added in onStart not persist on restart", async () => {
@@ -152,12 +152,12 @@ describe("scenario()", () => {
 
       mockr.startScenario("id1");
       const res = await get("/test-1");
-      expect(res.text).toEqual("ok1");
+      expect(await res.text()).toEqual("ok1");
       mockr.startScenario("id2");
       const res2 = await get("/test-1");
       expect(res2.status).toEqual(404);
       const res3 = await get("/test-2");
-      expect(res3.text).toEqual("ok2");
+      expect(await res3.text()).toEqual("ok2");
     });
   });
 });

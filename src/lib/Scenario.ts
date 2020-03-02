@@ -67,38 +67,43 @@ export class Scenario {
     this._config.id = id;
   }
 
-  description(description: string) {
+  description(description: string): this {
     this._config.description = description;
     return this;
   }
 
-  tags(tags: string[]) {
+  tag(tag: string): this {
+    this._config.tags.push(tag);
+    return this;
+  }
+
+  tags(tags: string[]): this {
     this._config.tags = tags;
     return this;
   }
 
-  state(name: string, schema: JSONSchemaDefinition) {
+  state(name: string, schema: JSONSchemaDefinition): this {
     this._config.stateConfigs.push({ name, schema });
     return this;
   }
 
-  onBootstrap(cb: OnBootstrapCallback) {
+  onBootstrap(cb: OnBootstrapCallback): this {
     this._config.onBootstrap = cb;
     return this;
   }
 
-  onStart(cb: OnStartCallback) {
+  onStart(cb: OnStartCallback): this {
     this._config.onStart = cb;
     return this;
   }
 
-  when(...matchers: ContextMatcherInput[]) {
+  when(...matchers: ContextMatcherInput[]): Expectation {
     const expectation = new Expectation(...matchers);
     this._config.expectations.push(expectation);
     return expectation;
   }
 
-  getConfig() {
+  getConfig(): ScenarioConfig {
     return this._config;
   }
 }

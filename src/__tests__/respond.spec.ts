@@ -21,46 +21,47 @@ describe("respond()", () => {
    */
 
   describe("()", () => {
-    test("should not respond when no response is set", async () => {
+    test("should respond with empty 200 text response when no response is set", async () => {
       mockr.when("/test");
       const res = await get("/test");
-      expect(res.status).toEqual(404);
+      expect(res.status).toEqual(200);
+      expect(await res.text()).toEqual("");
     });
 
     test("should respond with a 200 text response when given a string", async () => {
       mockr.when("/test").respond("ok");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should respond with a 200 json response when given an object", async () => {
       mockr.when("/test").respond({ a: "b" });
       const res = await get("/test");
-      expect(res.body).toEqual({ a: "b" });
+      expect(await res.json()).toEqual({ a: "b" });
     });
 
     test("should respond with a matching response when given a response builder", async () => {
       mockr.when("/test").respond(response("ok"));
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should respond with a 200 json response when given a fuction that returns an object", async () => {
       mockr.when("/test").respond(() => ({ a: "b" }));
       const res = await get("/test");
-      expect(res.body).toEqual({ a: "b" });
+      expect(await res.json()).toEqual({ a: "b" });
     });
 
     test("should respond with a 200 text response when given a function that returns a string", async () => {
       mockr.when("/test").respond(() => "ok");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should respond with a matching response when given a function that returns a response builder", async () => {
       mockr.when("/test").respond(() => response({ a: "b" }));
       const res = await get("/test");
-      expect(res.body).toEqual({ a: "b" });
+      expect(await res.json()).toEqual({ a: "b" });
     });
 
     test("should respond with a 200 text response when given a function that returns a promise resolving in a string", async () => {
@@ -70,7 +71,7 @@ describe("respond()", () => {
           () => new Promise(resolve => setTimeout(() => resolve("ok"), 100))
         );
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should respond with a matching response when given a function that returns a response builder", async () => {
@@ -83,27 +84,27 @@ describe("respond()", () => {
             )
         );
       const res = await get("/test");
-      expect(res.body).toEqual({ a: "b" });
+      expect(await res.json()).toEqual({ a: "b" });
     });
 
     test("should respond with a status code when only a status code is set", async () => {
       mockr.when("/test").respond(500);
       const res = await get("/test");
-      expect(res.text).toEqual("");
+      expect(await res.text()).toEqual("");
       expect(res.status).toEqual(500);
     });
 
     test("should respond with a 400 json response when a status code and json body is set", async () => {
       mockr.when("/test").respond(400, { a: "b" });
       const res = await get("/test");
-      expect(res.body).toEqual({ a: "b" });
+      expect(await res.json()).toEqual({ a: "b" });
       expect(res.status).toEqual(400);
     });
 
     test("should respond with a 400 text response when a status code and text body is set", async () => {
       mockr.when("/test").respond(500, "ok");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
       expect(res.status).toEqual(500);
     });
   });
@@ -116,14 +117,14 @@ describe("respond()", () => {
     test("should respond with correct status", async () => {
       mockr.when("/test").respond(response("error").status(500));
       const res = await get("/test");
-      expect(res.text).toEqual("error");
+      expect(await res.text()).toEqual("error");
       expect(res.status).toEqual(500);
     });
 
     test("should respond when only status is set", async () => {
       mockr.when("/test").respond(response().status(500));
       const res = await get("/test");
-      expect(res.text).toEqual("");
+      expect(await res.text()).toEqual("");
       expect(res.status).toEqual(500);
     });
   });
@@ -138,7 +139,7 @@ describe("respond()", () => {
         .when("/test")
         .respond(response().header("Cache-Control", "no-store"));
       const res = await get("/test");
-      expect(res.header["cache-control"]).toEqual("no-store");
+      expect(res.headers.get("cache-control")).toEqual("no-store");
     });
 
     test("should respond with correct multiple headers", async () => {
@@ -148,8 +149,8 @@ describe("respond()", () => {
           .header("Server", "mockr")
       );
       const res = await get("/test");
-      expect(res.header.server).toEqual("mockr");
-      expect(res.header["cache-control"]).toEqual("no-store");
+      expect(res.headers.get("server")).toEqual("mockr");
+      expect(res.headers.get("cache-control")).toEqual("no-store");
     });
   });
 
@@ -161,7 +162,7 @@ describe("respond()", () => {
     test("should respond with correct Set-Cookie header", async () => {
       mockr.when("/test").respond(response().cookie("a", "b"));
       const res = await get("/test");
-      expect(res.header["set-cookie"]).toEqual(["a=b"]);
+      expect(res.headers.get("set-cookie")).toEqual("a=b");
     });
 
     test("should respond with correct Set-Cookie header for multiple cookies", async () => {
@@ -171,7 +172,7 @@ describe("respond()", () => {
           .cookie("b", "c")
       );
       const res = await get("/test");
-      expect(res.header["set-cookie"]).toEqual(["a=b", "b=c"]);
+      expect(res.headers.get("set-cookie")).toEqual("a=b, b=c");
     });
 
     test("should respond with correct Set-Cookie header with options", async () => {
@@ -179,7 +180,7 @@ describe("respond()", () => {
         .when("/test")
         .respond(response().cookie("a", "b", { httpOnly: true }));
       const res = await get("/test");
-      expect(res.header["set-cookie"]).toEqual(["a=b; HttpOnly"]);
+      expect(res.headers.get("set-cookie")).toEqual("a=b; HttpOnly");
     });
   });
 
@@ -193,7 +194,7 @@ describe("respond()", () => {
       const start = Date.now();
       const res = await get("/test");
       const duration = Date.now() - start;
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
       expect(duration).toBeLessThan(150);
     });
 
@@ -202,7 +203,7 @@ describe("respond()", () => {
       const start = Date.now();
       const res = await get("/test");
       const duration = Date.now() - start;
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
       expect(duration).toBeGreaterThanOrEqual(200);
     });
 
@@ -211,7 +212,7 @@ describe("respond()", () => {
       const start = Date.now();
       const res = await get("/test");
       const duration = Date.now() - start;
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
       expect(duration).toBeGreaterThanOrEqual(200);
       expect(duration).toBeLessThanOrEqual(450);
     });

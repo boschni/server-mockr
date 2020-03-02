@@ -1,3 +1,4 @@
+import { executeAction } from "./actions";
 import { Config } from "./Config";
 import { request } from "./context-matchers";
 import {
@@ -98,7 +99,7 @@ export class ExpectationRunner {
       await this.respond(respondInput, ctx);
     }
 
-    await this.afterRespond(afterRespondActions, ctx);
+    this.afterRespond(afterRespondActions, ctx);
 
     return next ? false : true;
   }
@@ -150,7 +151,7 @@ export class ExpectationRunner {
 
     const res = value instanceof Response ? value : new Response(value);
 
-    await res.apply(ctx);
+    await res._apply(ctx);
   }
 
   private async afterRespond(
@@ -158,9 +159,12 @@ export class ExpectationRunner {
     ctx: ExpectationRequestContext
   ): Promise<void> {
     for (const value of values) {
-      const action = typeof value === "function" ? value(ctx) : value;
-      if (action) {
-        await action.execute(ctx);
+      const result = typeof value === "function" ? value(ctx) : value;
+
+      if (result instanceof Promise) {
+        await result;
+      } else if (result) {
+        await executeAction(result, ctx);
       }
     }
   }

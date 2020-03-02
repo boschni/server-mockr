@@ -124,7 +124,7 @@ export class ScenarioRunner {
       times: 1
     };
 
-    await response.apply(expectationValue);
+    await response._apply(expectationValue);
   }
 
   async onRequest(ctx: ScenarioRequestContext): Promise<boolean> {

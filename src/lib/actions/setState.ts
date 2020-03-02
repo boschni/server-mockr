@@ -1,11 +1,11 @@
 import { ExpectationValue, StateValue } from "../Values";
-import { Action } from "./Action";
+import { ActionBuilder } from "./Action";
 
 /*
  * FACTORY
  */
 
-export function setState(name: string, value: unknown) {
+export function setState(name: string, value: unknown): SetStateAction {
   return new SetStateAction(name, value);
 }
 
@@ -13,7 +13,7 @@ export function setState(name: string, value: unknown) {
  * ACTION
  */
 
-export class SetStateAction implements Action {
+export class SetStateAction implements ActionBuilder {
   private _state: StateValue;
 
   constructor(name: string, value: unknown) {

@@ -25,7 +25,7 @@ describe("next()", () => {
       mockr.when("/test").next();
       mockr.when("/test").respond("ok");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should be able to set partial response", async () => {
@@ -35,7 +35,7 @@ describe("next()", () => {
         .next();
       mockr.when("/test").respond("ok");
       const res = await get("/test");
-      expect(res.header["access-control-allow-origin"]).toEqual("*");
+      expect(res.headers.get("access-control-allow-origin")).toEqual("*");
     });
 
     test("values set in a next expectation should override the previous ones", async () => {
@@ -45,7 +45,7 @@ describe("next()", () => {
         .next();
       mockr.when("/test").respond("ok2");
       const res = await get("/test");
-      expect(res.text).toEqual("ok2");
+      expect(await res.text()).toEqual("ok2");
     });
   });
 });

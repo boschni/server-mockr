@@ -25,12 +25,18 @@ Mock HTTP APIs for rapid development and reliable testing.
     - [Response cookies](#response-cookies)
     - [Response delay](#response-delay)
     - [Response redirect](#response-redirect)
+    - [Response proxy](#response-proxy)
   - [Specifying times](#specifying-times)
   - [Specifying behaviours for all responses](#specifying-behaviours-for-all-responses)
   - [Verifying requests](#verifying-requests)
+  - [Actions](#actions)
+    - [setState action](#setstate-action)
+    - [sendRequest action](#sendrequest-action)
+    - [delay action](#delay-action)
   - [Scenarios](#scenarios)
     - [Starting scenarios](#starting-scenarios)
-    - [Scenario bootstrapping](#scenario-bootstrapping)
+    - [Configurable scenarios](#configurable-scenarios)
+    - [Bootstrapping](#bootstrapping)
   - [Matchers](#matchers)
     - [allOf](#allOf)
     - [anyOf](#anyOf)
@@ -446,6 +452,28 @@ Use the `redirect` method specify a 302 redirect:
 mockr.when("/resource").respond(response().redirect("/new-resource"));
 ```
 
+#### Response proxy
+
+Use the `proxy` method to proxy requests to a real server:
+
+```js
+mockr
+  .when(request().url(startsWith("/some-api")))
+  .respond(response().proxy("https://example.com"));
+```
+
+Use the `proxyRequest` builder to override request values:
+
+```js
+mockr
+  .when("/some-api/test")
+  .respond(
+    response().proxy(
+      proxyRequest("https://example.com").path("/other-api/test")
+    )
+  );
+```
+
 ### Specifying times
 
 Use the `times` matcher to specify how many times an expectation should match:
@@ -507,11 +535,71 @@ mockr
   .respond("ok");
 ```
 
+### Actions
+
+Actions are actions that can be taken after the mock server responded to some expectation.
+
+### setState action
+
+The `setState` action can be used to change state.
+This can be useful to simulate stateful web services.
+
+```js
+// Respond with empty todos list
+mockr.when(request().get("/todos"), state("todos", undefined)).respond([]);
+
+// Respond with filled todos list
+mockr
+  .when(request().get("/todos"), state("todos", "saved"))
+  .respond([{ id: 1 }]);
+
+// Set todos to "saved"
+mockr
+  .when(request().post("/todos"))
+  .respond({ id: 1 })
+  .afterRespond(setState("todos", "saved"));
+```
+
+### sendRequest action
+
+The `sendRequest` action can be used to trigger a HTTP request.
+This can be useful to simulate webhooks.
+
+```js
+scenario
+  .when(request().post("/todos"))
+  .respond({ id: 1 })
+  .afterRespond(
+    sendRequest("https://example.com/webhook")
+      .header("X-Signature", "f9e91a6f0462b4c61e3667a4f4a6e7d02edfa518")
+      .body({ action: "addedPost", post: { id: 1 } })
+  );
+```
+
+### delay action
+
+The `delay` action can be used to delay other actions.
+This can be useful to trigger a webhook after some amount of time.
+
+```js
+scenario
+  .when(request().post("/todos"))
+  .respond({ id: 1 })
+  .afterRespond(
+    delay(
+      sendRequest("https://example.com/webhook")
+        .header("X-Signature", "f9e91a6f0462b4c61e3667a4f4a6e7d02edfa518")
+        .body({ action: "addedPost", post: { id: 1 } }),
+      5000
+    )
+  );
+```
+
 ### Scenarios
 
 Scenarios can be used to group expectations together.
 They can be started and stopped programmatically, with the GUI or with the REST API.
-Scenarios can also contain state, which is useful when simulating stateful web services.
+Scenarios also contain individual state, which is useful when simulating stateful web services.
 
 ```js
 const scenario = mockr.scenario("todo-scenario");
@@ -574,11 +662,30 @@ mockr
 mockr.startScenario("todos", { todos: "saved" });
 ```
 
-#### Scenario bootstrapping
+#### Configurable scenarios
+
+Scenarios can be dynamically configured on startup with the `onStart` callback.
+
+This can be useful to create data on the fly or to conditionally add expectations based on some state.
+
+```js
+mockr
+  .scenario("user-scenario")
+  .state("userId", {
+    type: "string",
+    default: "000-000-000-001"
+  })
+  .onStart(({ scenario, state }) => {
+    const user = createUser(state.userId);
+    scenario.when(request().get("/user")).respond(user);
+  });
+```
+
+#### Bootstrapping
 
 Bootstrapping can be used to bootstrap a client.
 
-This can be useful if you for example want to redirect a client to the application under test with certain parameters:
+This can be useful if you for example want to redirect a browser to the application under test with certain parameters:
 
 ```js
 mockr
@@ -590,7 +697,7 @@ mockr
   .respond([{ id: 1 }]);
 ```
 
-The client can then be bootstrapped by navigating with the client to the following address:
+The client can then be bootstrapped by navigating the client to the following address:
 
 ```
 GET http://localhost:3001/api/scenarios/{scenarioID}/start-and-bootstrap?state[locale]=nl-nl

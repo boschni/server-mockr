@@ -50,7 +50,7 @@ export interface HeadersValue {
  */
 
 export interface CookiesValue {
-  [name: string]: string | string[];
+  [name: string]: string;
 }
 
 /*
@@ -85,6 +85,20 @@ export interface RequestValue {
 }
 
 /*
+ * OUTGOING REQUEST VALUE
+ */
+
+export interface OutgoingRequestValue {
+  body?: string;
+  cookies?: CookiesValue;
+  headers?: HeadersValue;
+  method?: MethodValue;
+  path?: PathValue;
+  query?: QueryValue;
+  url: UrlValue;
+}
+
+/*
  * TIMES VALUE
  */
 
@@ -114,6 +128,7 @@ export interface ResponseValue {
   body?: ResponseBodyValue;
   headers: HeadersValue;
   status?: number;
+  statusText?: string;
 }
 
 /*

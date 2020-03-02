@@ -1,5 +1,4 @@
 import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
 import express from "express";
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 
@@ -17,6 +16,7 @@ import {
 import {
   createResponseValue,
   incomingMessageToRequestValue,
+  respondWithNotFound,
   respondWithResponseValue
 } from "./valueHelpers";
 
@@ -37,7 +37,6 @@ export class ServerManager {
 
   startServer(port: number) {
     const app = express();
-    app.use(cookieParser());
     app.use(bodyParser.json());
     app.use(
       bodyParser.urlencoded({
@@ -95,9 +94,12 @@ export class ServerManager {
       handled = await this.scenarioManager.onRequest(scenarioManagerRequestCtx);
     }
 
-    if (handled) {
-      log.response = response;
+    if (!handled) {
+      await respondWithNotFound(res);
+      return;
     }
+
+    log.response = response;
 
     await respondWithResponseValue(res, response);
   };

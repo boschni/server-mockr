@@ -1,5 +1,4 @@
 import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
 import ejs from "ejs";
 import express, { Express, Request, Response } from "express";
 import { Server } from "http";
@@ -12,10 +11,9 @@ import { ScenarioManager } from "../lib/ScenarioManager";
 import {
   createResponseValue,
   incomingMessageToRequestValue,
-  queryParamToObject,
   respondWithResponseValue
 } from "../lib/valueHelpers";
-import { StateValue } from "../lib/Values";
+import { QueryValue, StateValue } from "../lib/Values";
 
 /*
  * CONTROL SERVER
@@ -33,7 +31,6 @@ export class ControlServer {
   ) {
     this.app = express();
     this.app.use("/static", express.static(path.join(__dirname, "static")));
-    this.app.use(cookieParser());
     this.app.use(bodyParser.json());
     this.app.use(
       bodyParser.urlencoded({
@@ -153,7 +150,7 @@ export class ControlServer {
     }
 
     const request = incomingMessageToRequestValue(req);
-    const state = queryParamToObject<StateValue>("state", request.query);
+    const state = this.queryParamToObject<StateValue>("state", request.query);
 
     await this.scenarioManager.startScenario(id, state);
 
@@ -239,7 +236,7 @@ export class ControlServer {
     }
 
     const request = incomingMessageToRequestValue(req);
-    const state = queryParamToObject<StateValue>("state", request.query);
+    const state = this.queryParamToObject<StateValue>("state", request.query);
     const response = createResponseValue();
 
     await this.scenarioManager.startScenario(id, state);
@@ -249,5 +246,21 @@ export class ControlServer {
 
     await scenario.bootstrap(request, response);
     await respondWithResponseValue(res, response);
+  };
+
+  private queryParamToObject = <T extends object>(
+    param: string,
+    query: QueryValue
+  ): T => {
+    const obj: any = {};
+
+    for (const [key, value] of Object.entries(query)) {
+      const match = key.match(`${param}\\[([a-zA-Z0-9]+)\\]`);
+      if (match) {
+        obj[match[1]] = value;
+      }
+    }
+
+    return obj;
   };
 }

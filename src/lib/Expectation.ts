@@ -25,9 +25,9 @@ type ContextMatcherFactory = (
   ctx: ExpectationValue
 ) => MatchResult | ContextMatcher;
 
-export type ActionInput = Action | ActionFn;
+export type ActionInput = Action | ActionFactory;
 
-type ActionFn = (ctx: ExpectationValue) => Action | void;
+type ActionFactory = (ctx: ExpectationValue) => Action | void;
 
 export interface ExpectationConfig {
   afterRespondActions: ActionInput[];

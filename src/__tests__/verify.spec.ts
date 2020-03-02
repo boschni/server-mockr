@@ -27,7 +27,7 @@ describe("verify()", () => {
         .verify("/test")
         .respond("ok");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when verify not matches", async () => {
@@ -36,8 +36,10 @@ describe("verify()", () => {
         .verify("/test-2")
         .respond("ok");
       const res = await get("/test");
-      expect(res.body.verifyResult.message).toEqual("matches request");
       expect(res.status).toEqual(400);
+      expect(await res.json()).toMatchObject({
+        verifyResult: { message: "matches request" }
+      });
     });
 
     test("should be able to do conditional validation", async () => {
@@ -48,14 +50,14 @@ describe("verify()", () => {
         )
         .respond("ok");
 
-      const res = await post("/test")
-        .set("no-validate", "true")
-        .send({ a: "c" });
+      const res = await post("/test", { a: "c" }, { "no-validate": "true" });
       expect(res.status).toEqual(200);
 
-      const res2 = await post("/test").send({ a: "c" });
-      expect(res2.body.verifyResult.message).toEqual("matches request");
+      const res2 = await post("/test", { a: "c" });
       expect(res2.status).toEqual(400);
+      expect(await res2.json()).toMatchObject({
+        verifyResult: { message: "matches request" }
+      });
     });
 
     test("should send custom verify failed response if defined", async () => {
@@ -65,7 +67,7 @@ describe("verify()", () => {
         .verifyFailedRespond(response("Server Error").status(500))
         .respond("ok");
       const res = await get("/test");
-      expect(res.text).toEqual("Server Error");
+      expect(await res.text()).toEqual("Server Error");
       expect(res.status).toEqual(500);
     });
   });

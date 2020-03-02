@@ -1,13 +1,16 @@
+import { ProxyRequest } from "./ProxyRequest";
 import {
   CookiesMap,
   CookiesMapObject,
   DelayAction,
   DelayConfig,
   HeadersMap,
+  ProxyAction,
   SetBodyAction,
   SetCookiesAction,
   SetHeadersAction,
-  SetStatusAction
+  SetStatusAction,
+  SetStatusTextAction
 } from "./respond-actions";
 import { ExpectationValue } from "./Values";
 
@@ -25,10 +28,12 @@ export function response(body?: unknown) {
 
 export class Response {
   private _body?: string;
-  private _cookies: CookiesMap = {};
+  private _cookies?: CookiesMap;
   private _delay?: DelayConfig;
-  private _headers: HeadersMap = {};
-  private _status = 200;
+  private _headers?: HeadersMap;
+  private _proxy?: ProxyRequest;
+  private _statusCode?: number;
+  private _statusText?: string;
 
   constructor(body?: unknown) {
     if (typeof body === "string") {
@@ -39,7 +44,12 @@ export class Response {
   }
 
   status(code: number): this {
-    this._status = code;
+    this._statusCode = code;
+    return this;
+  }
+
+  statusText(text: string): this {
+    this._statusText = text;
     return this;
   }
 
@@ -55,8 +65,8 @@ export class Response {
   }
 
   redirect(url: string): this {
-    this._status = 302;
-    this._headers.Location = url;
+    this._statusCode = 302;
+    this.header("Location", url);
     return this;
   }
 
@@ -78,7 +88,19 @@ export class Response {
   }
 
   header(name: string, value: string): this {
-    this._headers[name] = value;
+    const headers = this._headers ?? {};
+    const currentValue = headers[name];
+
+    if (Array.isArray(currentValue)) {
+      headers[name] = [...currentValue, value];
+    } else if (typeof currentValue === "string") {
+      headers[name] = [currentValue, value];
+    } else {
+      headers[name] = value;
+    }
+
+    this._headers = headers;
+
     return this;
   }
 
@@ -87,23 +109,54 @@ export class Response {
     value: string,
     options?: CookiesMapObject["options"]
   ): this {
-    this._cookies[name] = options ? { options, value } : value;
+    const cookies = this._cookies ?? {};
+    cookies[name] = options ? { options, value } : value;
+    this._cookies = cookies;
     return this;
   }
 
-  async apply(ctx: ExpectationValue): Promise<ExpectationValue> {
+  proxy(url: string): this;
+  proxy(proxyRequest: ProxyRequest): this;
+  proxy(input: string | ProxyRequest): this {
+    if (typeof input === "string") {
+      this._proxy = new ProxyRequest(input);
+    } else {
+      this._proxy = input;
+    }
+    return this;
+  }
+
+  async _apply(ctx: ExpectationValue): Promise<ExpectationValue> {
     try {
-      const setHeaders = new SetHeadersAction(this._headers);
-      await setHeaders.execute(ctx);
+      if (this._proxy) {
+        const proxy = new ProxyAction(this._proxy);
+        await proxy.execute(ctx);
+      }
 
-      const setCookies = new SetCookiesAction(this._cookies);
-      await setCookies.execute(ctx);
+      if (this._headers) {
+        const setHeaders = new SetHeadersAction(this._headers);
+        await setHeaders.execute(ctx);
+      }
 
-      const setBody = new SetBodyAction(this._body);
-      await setBody.execute(ctx);
+      if (this._cookies) {
+        const setCookies = new SetCookiesAction(this._cookies);
+        await setCookies.execute(ctx);
+      }
 
-      const setStatus = new SetStatusAction(this._status);
-      await setStatus.execute(ctx);
+      if (this._body) {
+        const setBody = new SetBodyAction(this._body);
+        await setBody.execute(ctx);
+      }
+
+      if (this._statusCode) {
+        const setStatus = new SetStatusAction(this._statusCode);
+        await setStatus.execute(ctx);
+      }
+
+      if (this._statusText) {
+        const setStatusText = new SetStatusTextAction(this._statusText);
+        await setStatusText.execute(ctx);
+      }
 
       if (this._delay) {
         const delayAction = new DelayAction(this._delay);

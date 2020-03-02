@@ -37,7 +37,7 @@ describe("matchers", () => {
     test("should match when the input matches the prefix", async () => {
       mockr.when(request().path(startsWith("/t"))).respond("ok");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when the input does not match the prefix", async () => {
@@ -55,7 +55,7 @@ describe("matchers", () => {
     test("should match when the input matches the suffix", async () => {
       mockr.when(request().path(endsWith("st"))).respond("ok");
       const res = await get("/test");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when the input does not match the suffix", async () => {
@@ -72,19 +72,19 @@ describe("matchers", () => {
   describe("isGreaterThan()", () => {
     test("should match when the input is greater", async () => {
       mockr.when(request().body(prop("a", isGreaterThan(1)))).respond("ok");
-      const res = await post("/test").send({ a: 2 });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: 2 });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when the input is equal", async () => {
       mockr.when(request().body(prop("a", isGreaterThan(1)))).respond("ok");
-      const res = await post("/test").send({ a: 1 });
+      const res = await post("/test", { a: 1 });
       expect(res.status).toEqual(404);
     });
 
     test("should not match when the input is lower", async () => {
       mockr.when(request().body(prop("a", isGreaterThan(1)))).respond("ok");
-      const res = await post("/test").send({ a: 0 });
+      const res = await post("/test", { a: 0 });
       expect(res.status).toEqual(404);
     });
   });
@@ -98,23 +98,23 @@ describe("matchers", () => {
       mockr
         .when(request().body(prop("a", isGreaterThanOrEqual(2))))
         .respond("ok");
-      const res = await post("/test").send({ a: 3 });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: 3 });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should match when the input is equal", async () => {
       mockr
         .when(request().body(prop("a", isGreaterThanOrEqual(2))))
         .respond("ok");
-      const res = await post("/test").send({ a: 2 });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: 2 });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when the input is lower", async () => {
       mockr
         .when(request().body(prop("a", isGreaterThanOrEqual(2))))
         .respond("ok");
-      const res = await post("/test").send({ a: 1 });
+      const res = await post("/test", { a: 1 });
       expect(res.status).toEqual(404);
     });
   });
@@ -126,19 +126,19 @@ describe("matchers", () => {
   describe("isLowerThan()", () => {
     test("should match when the input is lower", async () => {
       mockr.when(request().body(prop("a", isLowerThan(2)))).respond("ok");
-      const res = await post("/test").send({ a: 1 });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: 1 });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when the input is equal", async () => {
       mockr.when(request().body(prop("a", isLowerThan(2)))).respond("ok");
-      const res = await post("/test").send({ a: 2 });
+      const res = await post("/test", { a: 2 });
       expect(res.status).toEqual(404);
     });
 
     test("should not match when the input is greater", async () => {
       mockr.when(request().body(prop("a", isLowerThan(2)))).respond("ok");
-      const res = await post("/test").send({ a: 3 });
+      const res = await post("/test", { a: 3 });
       expect(res.status).toEqual(404);
     });
   });
@@ -152,23 +152,23 @@ describe("matchers", () => {
       mockr
         .when(request().body(prop("a", isLowerThanOrEqual(2))))
         .respond("ok");
-      const res = await post("/test").send({ a: 1 });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: 1 });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should match when the input is equal", async () => {
       mockr
         .when(request().body(prop("a", isLowerThanOrEqual(2))))
         .respond("ok");
-      const res = await post("/test").send({ a: 2 });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: 2 });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when the input is greater", async () => {
       mockr
         .when(request().body(prop("a", isLowerThanOrEqual(2))))
         .respond("ok");
-      const res = await post("/test").send({ a: 3 });
+      const res = await post("/test", { a: 3 });
       expect(res.status).toEqual(404);
     });
   });
@@ -180,25 +180,25 @@ describe("matchers", () => {
   describe("prop()", () => {
     test("should match when property value is equal", async () => {
       mockr.when(request().body(prop("a", "b"))).respond("ok");
-      const res = await post("/test").send({ a: "b" });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: "b" });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should match when property value matches a match function", async () => {
       mockr.when(request().body(prop("a", startsWith("b")))).respond("ok");
-      const res = await post("/test").send({ a: "b" });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: "b" });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when property value is not equal", async () => {
       mockr.when(request().body(prop("a", "b"))).respond("ok");
-      const res = await post("/test").send({ a: "c" });
+      const res = await post("/test", { a: "c" });
       expect(res.status).toEqual(404);
     });
 
     test("should not match when property path does not exist", async () => {
       mockr.when(request().body(prop("a", "c"))).respond("ok");
-      const res = await post("/test").send({ b: "c" });
+      const res = await post("/test", { b: "c" });
       expect(res.status).toEqual(404);
     });
 
@@ -216,27 +216,27 @@ describe("matchers", () => {
   describe("pointer()", () => {
     test("should match when pointer value is equal", async () => {
       mockr.when(request().body(pointer("/a/1", "b"))).respond("ok");
-      const res = await post("/test").send({ a: ["a", "b"] });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: ["a", "b"] });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should match when pointer value matches a match function", async () => {
       mockr
         .when(request().body(pointer("/a/1", startsWith("b"))))
         .respond("ok");
-      const res = await post("/test").send({ a: ["a", "b"] });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: ["a", "b"] });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when pointer value is not equal", async () => {
       mockr.when(request().body(pointer("/a/1", "c"))).respond("ok");
-      const res = await post("/test").send({ a: ["a", "b"] });
+      const res = await post("/test", { a: ["a", "b"] });
       expect(res.status).toEqual(404);
     });
 
     test("should not match when pointer path does not exist", async () => {
       mockr.when(request().body(pointer("/invalid/a/b", "c"))).respond("ok");
-      const res = await post("/test").send({ a: ["a", "b"] });
+      const res = await post("/test", { a: ["a", "b"] });
       expect(res.status).toEqual(404);
     });
 
@@ -256,13 +256,13 @@ describe("matchers", () => {
       mockr
         .when(request().body(matchesObject({ a: "b", b: [1] })))
         .respond("ok");
-      const res = await post("/test").send({ a: "b", b: [1], c: "d" });
-      expect(res.text).toEqual("ok");
+      const res = await post("/test", { a: "b", b: [1], c: "d" });
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when the object does not match partially", async () => {
       mockr.when(request().body(matchesObject({ a: "b" }))).respond("ok");
-      const res = await post("/test").send({ b: "b" });
+      const res = await post("/test", { b: "b" });
       expect(res.status).toEqual(404);
     });
   });
@@ -275,7 +275,7 @@ describe("matchers", () => {
     test("should match when exactly one of the values matches", async () => {
       mockr.when(request().query("order", oneOf("asc", "desc"))).respond("ok");
       const res = await get("/test?order=asc");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when none of the values match", async () => {
@@ -297,7 +297,7 @@ describe("matchers", () => {
         .when(request().query("order", oneOf(startsWith("a"), endsWith("a"))))
         .respond("ok");
       const res = await get("/test?order=asc");
-      expect(res.text).toEqual("ok");
+      expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when multiple matchers match", async () => {

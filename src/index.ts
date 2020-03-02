@@ -2,9 +2,10 @@ import { ServerMockr } from "./lib/ServerMockr";
 
 export { ServerMockr } from "./lib/ServerMockr";
 export { InitialConfig } from "./lib/Config";
-export { setState } from "./lib/actions";
+export { delay, sendRequest, setState } from "./lib/actions";
 export { Expectation, expect } from "./lib/Expectation";
 export { Scenario, scenario } from "./lib/Scenario";
+export { proxyRequest, ProxyRequest } from "./lib/ProxyRequest";
 export { Response, response } from "./lib/Response";
 export { globals, request, state, times } from "./lib/context-matchers";
 export {
