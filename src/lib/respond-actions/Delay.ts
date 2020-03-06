@@ -3,6 +3,12 @@ import { ExpectationValue } from "../Values";
 import { RespondAction } from "./RespondAction";
 
 /*
+ * TYPES
+ */
+
+export interface DelayConfig extends WaitForConfig {}
+
+/*
  * ACTION
  */
 
