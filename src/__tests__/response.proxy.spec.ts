@@ -3,7 +3,7 @@ import "jest";
 import { proxyRequest, request, response, ServerMockr, startsWith } from "../";
 import { get, post, setup } from "./utils";
 
-describe("proxy()", () => {
+describe("response.proxy()", () => {
   let mockr: ServerMockr;
 
   beforeAll(() => {

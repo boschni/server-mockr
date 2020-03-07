@@ -3,7 +3,7 @@ import "jest";
 import { delay, ServerMockr, setState, state } from "../";
 import { get, setup, waitFor } from "./utils";
 
-describe("afterRespond()", () => {
+describe("expectation.afterRespond()", () => {
   let mockr: ServerMockr;
 
   beforeAll(() => {

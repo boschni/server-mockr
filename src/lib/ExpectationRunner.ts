@@ -63,8 +63,9 @@ export class ExpectationRunner {
       afterRespondActions,
       next,
       respondInput,
-      verifyMatchers,
+      times,
       verifyFailedRespondInput,
+      verifyMatchers,
       whenMatchers
     } = this.expectationConfig;
 
@@ -78,6 +79,10 @@ export class ExpectationRunner {
     }
 
     this.timesMatched++;
+
+    if (typeof times === "number" && this.timesMatched > times) {
+      return false;
+    }
 
     const verifyResult = await this.match(verifyMatchers, ctx);
     log.verifyResult = verifyResult;

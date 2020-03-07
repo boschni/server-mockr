@@ -34,8 +34,9 @@ export interface ExpectationConfig {
   id?: string;
   next: boolean;
   respondInput?: RespondInput;
-  verifyMatchers: ContextMatcherInput[];
+  times?: number;
   verifyFailedRespondInput?: RespondInput;
+  verifyMatchers: ContextMatcherInput[];
   whenMatchers: ContextMatcherInput[];
 }
 
@@ -65,6 +66,11 @@ export class Expectation {
 
   id(id: string): this {
     this._config.id = id;
+    return this;
+  }
+
+  times(times: number): this {
+    this._config.times = times;
     return this;
   }
 

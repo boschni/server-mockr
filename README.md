@@ -476,11 +476,18 @@ mockr
 
 ### Specifying times
 
-Use the `times` matcher to specify how many times an expectation should match:
+Use the `times` method to specify how many times an expectation should match:
 
 ```js
-mockr.when("/resource", times(1)).respond("First time");
-mockr.when("/resource", times(1)).respond("Second time");
+mockr
+  .when("/resource")
+  .times(1)
+  .respond("First time");
+
+mockr
+  .when("/resource")
+  .times(1)
+  .respond("Second time");
 ```
 
 ### Specifying behaviours for all responses

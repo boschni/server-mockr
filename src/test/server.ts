@@ -3,10 +3,9 @@ import ServerMockr, {
   request,
   response,
   setState,
-  state,
-  times
+  state
 } from "../index";
-import { anyOf, isGreaterThanOrEqual } from "../lib/value-matchers";
+import { anyOf } from "../lib/value-matchers";
 
 /*
  * CONTROL SERVER
@@ -59,10 +58,19 @@ Steps:
         count++;
       });
 
-    scenario.when(request("/times"), times(1)).respond(response(1));
-    scenario.when(request("/times"), times(1)).respond(response(2));
     scenario
-      .when(request("/times"), times(isGreaterThanOrEqual(0)))
+      .when(request("/times"))
+      .times(1)
+      .respond(response(1));
+
+    scenario
+      .when(request("/times"))
+      .times(1)
+      .respond(response(2));
+
+    scenario
+      .when(request("/times"))
+      .times(1)
       .respond(response(3));
 
     scenario
@@ -74,9 +82,9 @@ Steps:
         request("/en-gb/todos/:id")
           .method("GET")
           .param("id", "1")
-          .param("id", isEqualTo("1")),
-        times(2)
+          .param("id", isEqualTo("1"))
       )
+      .times(2)
       .respond(({ req }) => response().json({ id: req.params.id }));
 
     scenario

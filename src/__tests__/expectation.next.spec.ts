@@ -3,7 +3,7 @@ import "jest";
 import { response, ServerMockr } from "../";
 import { get, setup } from "./utils";
 
-describe("next()", () => {
+describe("expectation.next()", () => {
   let mockr: ServerMockr;
 
   beforeAll(() => {
