@@ -6,8 +6,8 @@ import { Logger } from "./Logger";
 import { RequestLogManager } from "./RequestLogManager";
 import { Scenario } from "./Scenario";
 import { ScenarioManager } from "./ScenarioManager";
+import { StartScenarioParams } from "./ScenarioRunner";
 import { ServerManager } from "./ServerManager";
-import { StateValue } from "./Values";
 
 /*
  * SERVER SETUP
@@ -72,12 +72,20 @@ export class ServerMockr {
     this.scenarioManager.addScenario(scenario);
   }
 
-  startScenario(id: string, state?: StateValue) {
-    this.scenarioManager.startScenario(id, state);
+  startScenario(id: string, params?: StartScenarioParams): string | undefined {
+    const runner = this.scenarioManager.startScenario(id, params);
+
+    if (runner) {
+      return runner.getId();
+    }
   }
 
-  stopScenario(id: string) {
+  stopScenario(id?: string) {
     this.scenarioManager.stopScenario(id);
+  }
+
+  stopScenarioRunner(id?: string) {
+    this.scenarioManager.stopScenarioRunner(id);
   }
 
   start() {

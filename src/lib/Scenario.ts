@@ -1,11 +1,15 @@
+import MarkdownIt from "markdown-it";
+
 import { ContextMatcherInput, Expectation } from "./Expectation";
 import { Response } from "./Response";
 import {
+  ConfigDefinition,
+  ConfigValue,
   GlobalsValue,
   JSONSchemaDefinition,
   RequestValue,
   ResponseValue,
-  StateConfig,
+  StateDefinition,
   StateValue
 } from "./Values";
 
@@ -13,19 +17,10 @@ import {
  * TYPES
  */
 
-export interface ScenarioConfig {
-  description: string;
-  expectations: Expectation[];
-  id: string;
-  onBootstrap?: OnBootstrapCallback;
-  onStart?: OnStartCallback;
-  stateConfigs: StateConfig[];
-  tags: string[];
-}
-
 export type OnStartCallback = (ctx: OnStartScenarioContext) => void;
 
 export interface OnStartScenarioContext {
+  config: ConfigValue;
   globals: GlobalsValue;
   scenario: Scenario;
   state: StateValue;
@@ -36,11 +31,20 @@ export type OnBootstrapCallback = (
 ) => Response | void;
 
 export interface OnBootstrapScenarioContext {
+  config: ConfigValue;
   globals: GlobalsValue;
   req: RequestValue;
   res: ResponseValue;
   state: StateValue;
 }
+
+/*
+ * HELPERS
+ */
+
+const md = new MarkdownIt({
+  html: true
+});
 
 /*
  * FACTORY
@@ -55,55 +59,107 @@ export function scenario(id: string) {
  */
 
 export class Scenario {
-  private _config: ScenarioConfig = {
-    description: "",
-    expectations: [],
-    id: "",
-    stateConfigs: [],
-    tags: []
-  };
+  private _configDefinitions: ConfigDefinition[] = [];
+  private _description = "";
+  private _expectations: Expectation[] = [];
+  private _id: string;
+  private _onBootstrap?: OnBootstrapCallback;
+  private _onStart?: OnStartCallback;
+  private _stateDefinitions: StateDefinition[] = [];
+  private _tags: string[] = [];
+
+  /*
+   * SETTERS
+   */
 
   constructor(id: string) {
-    this._config.id = id;
+    this._id = id;
   }
 
   description(description: string): this {
-    this._config.description = description;
+    this._description = description;
     return this;
   }
 
   tag(tag: string): this {
-    this._config.tags.push(tag);
+    this._tags.push(tag);
     return this;
   }
 
   tags(tags: string[]): this {
-    this._config.tags = tags;
+    this._tags = tags;
     return this;
   }
 
-  state(name: string, schema: JSONSchemaDefinition): this {
-    this._config.stateConfigs.push({ name, schema });
+  config(name: string, schema?: JSONSchemaDefinition): this {
+    schema = schema ?? { type: "string" };
+    this._configDefinitions.push({ name, schema });
+    return this;
+  }
+
+  state(name: string, schema?: JSONSchemaDefinition): this {
+    schema = schema ?? { type: "string" };
+    this._stateDefinitions.push({ name, schema });
     return this;
   }
 
   onBootstrap(cb: OnBootstrapCallback): this {
-    this._config.onBootstrap = cb;
+    this._onBootstrap = cb;
     return this;
   }
 
   onStart(cb: OnStartCallback): this {
-    this._config.onStart = cb;
+    this._onStart = cb;
     return this;
   }
 
   when(...matchers: ContextMatcherInput[]): Expectation {
     const expectation = new Expectation(...matchers);
-    this._config.expectations.push(expectation);
+    this._expectations.push(expectation);
     return expectation;
   }
 
-  getConfig(): ScenarioConfig {
-    return this._config;
+  /*
+   * GETTERS
+   */
+
+  getId(): string {
+    return this._id;
+  }
+
+  getTags(): string[] {
+    return this._tags;
+  }
+
+  getFormattedDescription(): string {
+    return md.render(this._description.trim());
+  }
+
+  getConfigParams(): ConfigDefinition[] {
+    return this._configDefinitions;
+  }
+
+  getStateParams(): StateDefinition[] {
+    return this._stateDefinitions;
+  }
+
+  getVisibleConfigParams(): ConfigDefinition[] {
+    return this._configDefinitions.filter(x => !x.schema.hidden);
+  }
+
+  getVisibleStateParams(): StateDefinition[] {
+    return this._stateDefinitions.filter(x => !x.schema.hidden);
+  }
+
+  getExpectations(): Expectation[] {
+    return this._expectations;
+  }
+
+  getOnStartCallback(): OnStartCallback | undefined {
+    return this._onStart;
+  }
+
+  getOnBootstrapCallback(): OnBootstrapCallback | undefined {
+    return this._onBootstrap;
   }
 }

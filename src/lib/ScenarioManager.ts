@@ -2,8 +2,12 @@ import { Config } from "./Config";
 import { Logger } from "./Logger";
 import { ScenarioRequestLog } from "./RequestLogManager";
 import { Scenario } from "./Scenario";
-import { ScenarioRequestContext, ScenarioRunner } from "./ScenarioRunner";
-import { RequestValue, ResponseValue, StateValue } from "./Values";
+import {
+  ScenarioRequestContext,
+  ScenarioRunner,
+  StartScenarioParams
+} from "./ScenarioRunner";
+import { RequestValue, ResponseValue } from "./Values";
 
 /*
  * TYPES
@@ -21,57 +25,77 @@ export interface ScenarioManagerRequestContext {
 
 export class ScenarioManager {
   private active = false;
+  private scenarios: Scenario[] = [];
   private scenarioRunners: ScenarioRunner[] = [];
 
   constructor(private config: Config, private logger: Logger) {}
 
-  start() {
+  start(): void {
     this.active = true;
   }
 
-  stop() {
+  stop(): void {
     this.active = false;
-    this.stopScenarios();
+    this.stopAllScenarios();
   }
 
-  clear() {
+  clear(): void {
+    this.scenarios = [];
     this.scenarioRunners = [];
   }
 
-  addScenario(scenario: Scenario) {
-    const runner = new ScenarioRunner(this.config, this.logger, scenario);
-    this.scenarioRunners.push(runner);
+  addScenario(scenario: Scenario): void {
+    this.scenarios.push(scenario);
   }
 
-  async startScenario(id: string, state?: StateValue) {
-    const runner = this.getScenarioRunner(id);
+  startScenario(
+    id: string,
+    params?: StartScenarioParams
+  ): ScenarioRunner | undefined {
+    const scenario = this.getScenario(id);
 
-    if (!runner) {
+    if (!scenario) {
       return;
     }
 
     if (!this.config.multipleActiveScenarios) {
-      this.stopScenarios();
+      this.stopAllScenarios();
     }
 
-    if (runner.isActive()) {
-      runner.stop();
-    }
+    const runner = new ScenarioRunner(this.config, this.logger, scenario);
 
-    return runner.start(state);
+    this.scenarioRunners.push(runner);
+
+    runner.start(params);
+
+    return runner;
   }
 
-  stopScenario(id: string) {
+  stopScenario(id?: string): void {
+    for (const runner of this.scenarioRunners) {
+      if (runner.getScenarioId() === id) {
+        this.stopScenarioRunner(runner.getId());
+      }
+    }
+  }
+
+  stopAllScenarios(): void {
+    this.stopAllScenarioRunners();
+  }
+
+  stopScenarioRunner(id?: string): void {
     const runner = this.getScenarioRunner(id);
 
     if (runner && runner.isActive()) {
       runner.stop();
     }
+
+    this.scenarioRunners = this.scenarioRunners.filter(x => x.isActive());
   }
 
-  stopScenarios() {
+  stopAllScenarioRunners(): void {
     for (const runner of this.scenarioRunners) {
-      runner.stop();
+      this.stopScenarioRunner(runner.getId());
     }
   }
 
@@ -80,12 +104,20 @@ export class ScenarioManager {
     this.startScenario(id);
   }
 
-  getScenarioRunners() {
+  getScenarioRunner(id?: string): ScenarioRunner | undefined {
+    return this.scenarioRunners.find(x => x.getId() === id);
+  }
+
+  getScenarioRunners(): ScenarioRunner[] {
     return this.scenarioRunners;
   }
 
-  getScenarioRunner(id: string) {
-    return this.scenarioRunners.find(x => x.getId() === id);
+  getScenario(id: string): Scenario | undefined {
+    return this.scenarios.find(x => x.getId() === id);
+  }
+
+  getScenarios(): Scenario[] {
+    return this.scenarios;
   }
 
   async onRequest(ctx: ScenarioManagerRequestContext): Promise<boolean> {

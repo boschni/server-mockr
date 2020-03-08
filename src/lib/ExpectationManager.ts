@@ -6,7 +6,7 @@ import {
 } from "./ExpectationRunner";
 import { Logger } from "./Logger";
 import { ExpectationRequestLog } from "./RequestLogManager";
-import { RequestValue, ResponseValue, StateValue } from "./Values";
+import { ConfigValue, RequestValue, ResponseValue, StateValue } from "./Values";
 
 /*
  * TYPES
@@ -25,13 +25,15 @@ export interface ExpectationManagerRequestContext {
 export class ExpectationManager {
   private active = false;
   private expectationRunners: ExpectationRunner[] = [];
+  private expectationConfig: ConfigValue = {};
   private expectationState: StateValue = {};
 
   constructor(private config: Config, private logger: Logger) {}
 
-  start(state?: StateValue) {
+  start(config?: ConfigValue, state?: StateValue) {
     this.active = true;
 
+    this.expectationConfig = { ...config };
     this.expectationState = { ...state };
 
     for (const runner of this.expectationRunners) {
@@ -70,6 +72,10 @@ export class ExpectationManager {
     }
   }
 
+  getConfig(): ConfigValue {
+    return this.expectationConfig;
+  }
+
   getState(): StateValue {
     return this.expectationState;
   }
@@ -81,6 +87,7 @@ export class ExpectationManager {
 
     for (const runner of this.expectationRunners) {
       const expectationCtx: ExpectationRequestContext = {
+        config: this.expectationConfig,
         expectationRequestLogs: ctx.expectationRequestLogs,
         globals: this.config.globals,
         req: ctx.request,

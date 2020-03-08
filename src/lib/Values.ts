@@ -105,6 +105,14 @@ export interface OutgoingRequestValue {
 export type TimesValue = number;
 
 /*
+ * CONFIG VALUE
+ */
+
+export interface ConfigValue {
+  [name: string]: any;
+}
+
+/*
  * STATE VALUE
  */
 
@@ -136,6 +144,7 @@ export interface ResponseValue {
  */
 
 export interface ExpectationValue {
+  config: ConfigValue;
   globals: GlobalsValue;
   req: RequestValue;
   res: ResponseValue;
@@ -160,7 +169,12 @@ export type JSONValue =
  * SCHEMA
  */
 
-export interface StateConfig {
+export interface ConfigDefinition {
+  name: string;
+  schema: JSONSchemaDefinition;
+}
+
+export interface StateDefinition {
   name: string;
   schema: JSONSchemaDefinition;
 }

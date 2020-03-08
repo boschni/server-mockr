@@ -7,7 +7,7 @@ export { Expectation, expect } from "./lib/Expectation";
 export { Scenario, scenario } from "./lib/Scenario";
 export { proxyRequest, ProxyRequest } from "./lib/ProxyRequest";
 export { Response, response } from "./lib/Response";
-export { globals, request, state } from "./lib/context-matchers";
+export { config, globals, request, state } from "./lib/context-matchers";
 export {
   MatchFn,
   MatchResult,

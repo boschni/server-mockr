@@ -1,130 +1,20 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <title>Server Mockr</title>
-  <link rel="stylesheet" href="/static/main.css">
-</head>
-<body>
-<div class="header">
-  <span class="header__logo">
-    Server Mockr
-  </span>
-</div>
-<div class="container">
-  <a href="/api/request-logs" target="_blank">View request logs</a>
-  <h1>Scenarios</h1>
-  <div class="filters">
-    <div class="filters__item">
-      Filter by ID: <input name="id-filter" type="text" />
+  <head>
+    <meta charset="utf-8" />
+    <title>Server Mockr</title>
+    <link rel="stylesheet" href="/static/main.css" />
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div class="header">
+      <span class="header__logo">
+        Server Mockr
+      </span>
     </div>
-    <div class="filters__item">
-      Filter by tag: <input name="tags-filter" type="text" />
-    </div>
-  </div>
-  <table class="scenario-table">
-    <thead>
-      <th class="scenario-table__th scenario-table__th-id">ID</th>
-      <th class="scenario-table__th scenario-table__th-tags">Tags</th>
-      <th class="scenario-table__th scenario-table__th-status">Status</th>
-      <th class="scenario-table__th scenario-table__th-actions">Actions</th>
-    </thead>
-    <tbody>
-    <% for (const scenario of scenarios) { %>
-      <tr class="scenario-table__summary-row" data-scenario-id="<%= scenario.getId() %>" data-scenario-tags="<%= scenario.getTags() ? scenario.getTags().join(', ') : '' %>">
-        <td class="scenario-table__col-id"><%= scenario.getId() %></td>
-        <td class="scenario-table__col-tags"><%= scenario.getTags() ? scenario.getTags().join(", ") : '' %></td>
-        <td class="scenario-table__col-status">
-          <%= scenario.isActive() ? 'Active' : 'Inactive' %>
-        </td>
-        <td class="scenario-table__col-actions">
-          <form
-            data-scenario-start-form=""
-            data-scenario-start-form-id="<%= scenario.getId() %>"
-            data-scenario-start-form-action="/api/scenarios/<%= scenario.getId() %>/start"
-            class="form"
-            action="/api/scenarios/<%= scenario.getId() %>/start"
-            method="GET"
-            target="_blank">
-            <button data-scenario-start-button="" type="submit">Start</button>
-          </form>
-          <form
-            data-scenario-stop-form=""
-            data-scenario-stop-form-id="<%= scenario.getId() %>"
-            data-scenario-stop-form-action="/api/scenarios/<%= scenario.getId() %>/stop"
-            class="form"
-            action="/api/scenarios/<%= scenario.getId() %>/stop"
-            method="GET"
-            target="_blank">
-            <button data-scenario-stop-button="" type="submit">Stop</button>
-          </form>
-          <form
-            data-scenario-reset-form=""
-            data-scenario-reset-form-id="<%= scenario.getId() %>"
-            data-scenario-reset-form-action="/api/scenarios/<%= scenario.getId() %>/reset"
-            class="form"
-            action="/api/scenarios/<%= scenario.getId() %>/reset"
-            method="GET"
-            target="_blank">
-            <button data-scenario-reset-button="" type="submit">Reset</button>
-          </form>
-          <form
-            data-scenario-bootstrap-form=""
-            data-scenario-bootstrap-form-id="<%= scenario.getId() %>"
-            data-scenario-bootstrap-form-action="/api/scenarios/<%= scenario.getId() %>/start-and-bootstrap"
-            class="form"
-            action="/api/scenarios/<%= scenario.getId() %>/start-and-bootstrap"
-            method="GET"
-            target="_blank">
-            <button data-scenario-bootstrap-button="" type="submit">Start & Bootstrap</button>
-          </form>
-        </td>
-      </tr>
-      <tr class="scenario-table__details-row">
-        <td colspan="4">
-          <% if (scenario.getDescription()) { %>
-            <h2>Description</h2>
-            <%- scenario.getFormattedDescription() %>
-          <% } %>
-
-          <% if (scenario.getVisibleStateParams()) { %>
-            <h2>State</h2>
-            <form
-              data-scenario-start-form=""
-              data-scenario-start-form-id="<%= scenario.getId() %>"
-              data-scenario-start-form-action="/api/scenarios/<%= scenario.getId() %>/start"
-              data-scenario-bootstrap-form=""
-              data-scenario-bootstrap-form-id="<%= scenario.getId() %>"
-              data-scenario-bootstrap-form-action="/api/scenarios/<%= scenario.getId() %>/start-and-bootstrap"
-              class="form"
-              action="/api/scenarios/<%= scenario.getId() %>/start-and-bootstrap"
-              method="GET"
-              target="_blank">
-              <% for ({name, schema} of scenario.getVisibleStateParams()) { %>
-                <div class="form__field">
-                  <label class="form__label" for="state_<%= name %>"><%= name  %></label>
-                  <% if (schema.type === "string" && schema.enum) { %>
-                  <select id="state_<%= name %>" name="state[<%= name  %>]">
-                    <option value="">Select</option>
-                    <% for (enumValue of schema.enum) { %>
-                    <option value="<%= enumValue  %>"<%= enumValue === schema.default ? ' selected' : ''  %>>
-                      <%= enumValue  %>
-                    </option>
-                    <% } %>
-                  </select>
-                  <% } %>
-                </div>
-              <% } %>
-              <button data-scenario-start-button="" type="submit">Start</button>
-              <button data-scenario-bootstrap-button="" type="submit">Start & Bootstrap</button>
-            </form>
-          <% } %>
-        </td>
-      </tr>
-    <% } %>
-    </tbody>
-  </table>
-</div>
-<script src="/static/main.js"></script>
-</body>
+    <div class="container"></div>
+    <script type="text/babel" src="/static/main.js"></script>
+  </body>
 </html>

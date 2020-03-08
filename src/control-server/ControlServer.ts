@@ -7,13 +7,41 @@ import path from "path";
 import { Config } from "../lib/Config";
 import { Logger } from "../lib/Logger";
 import { RequestLogManager } from "../lib/RequestLogManager";
+import { Scenario } from "../lib/Scenario";
 import { ScenarioManager } from "../lib/ScenarioManager";
+import { ScenarioRunner } from "../lib/ScenarioRunner";
 import {
   createResponseValue,
   incomingMessageToRequestValue,
   respondWithResponseValue
 } from "../lib/valueHelpers";
-import { QueryValue, StateValue } from "../lib/Values";
+import {
+  ConfigDefinition,
+  ConfigValue,
+  QueryValue,
+  StateDefinition,
+  StateValue
+} from "../lib/Values";
+
+/*
+ * TYPES
+ */
+
+interface ApiScenario {
+  configDefinitions: ConfigDefinition[];
+  description: string;
+  id: string;
+  runners: ApiScenarioRunner[];
+  stateDefinitions: StateDefinition[];
+  tags: string[];
+}
+
+interface ApiScenarioRunner {
+  config: ConfigValue;
+  id: string;
+  scenarioId: string;
+  state: StateValue;
+}
 
 /*
  * CONTROL SERVER
@@ -41,9 +69,9 @@ export class ControlServer {
     this.app.get("/api/request-logs", this.handleGetRequestLogs);
     this.app.get("/api/scenarios", this.handleGetScenarios);
     this.app.get("/api/scenarios/:id", this.handleGetScenario);
-    this.app.get("/api/scenarios/:id/start", this.handleGetStartScenario);
-    this.app.get("/api/scenarios/:id/stop", this.handleGetStopScenario);
-    this.app.get("/api/scenarios/:id/reset", this.handleGetResetScenario);
+    this.app.post("/api/scenarios/:id/start", this.handleGetStartScenario);
+    this.app.post("/api/scenarios/:id/stop", this.handleGetStopScenario);
+    this.app.post("/api/scenarios/:id/reset", this.handleGetResetScenario);
     this.app.get(
       "/api/scenarios/:id/bootstrap",
       this.handleGetBootstrapScenario
@@ -52,6 +80,8 @@ export class ControlServer {
       "/api/scenarios/:id/start-and-bootstrap",
       this.handleGetStartAndBootstrapScenario
     );
+
+    this.app.get("/api/scenario-runners", this.handleGetScenarioRunners);
   }
 
   start() {
@@ -109,15 +139,10 @@ export class ControlServer {
    * This handler lists all available scenarios.
    */
   private handleGetScenarios = async (_req: Request, res: Response) => {
-    const scenarios = this.scenarioManager.getScenarioRunners();
-
-    const json = JSON.parse(
-      JSON.stringify(scenarios, (_, val) =>
-        typeof val === "function" ? val.toString() : val
-      )
-    );
-
-    res.json(json);
+    const apiScenarios = this.scenarioManager
+      .getScenarios()
+      .map(scenario => this.scenarioToApiScenario(scenario));
+    res.json(apiScenarios);
   };
 
   /**
@@ -126,14 +151,16 @@ export class ControlServer {
   private handleGetScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const scenario = this.scenarioManager.getScenarioRunner(id);
+    const scenario = this.scenarioManager.getScenario(id);
 
     if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
 
-    res.json(scenario);
+    const apiScenario = this.scenarioToApiScenario(scenario);
+
+    res.json(apiScenario);
   };
 
   /**
@@ -142,20 +169,21 @@ export class ControlServer {
   private handleGetStartScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const scenario = this.scenarioManager.getScenarioRunner(id);
+    const request = incomingMessageToRequestValue(req);
+    const config = this.queryParamToObject<ConfigValue>(
+      "config",
+      request.query
+    );
+    const state = this.queryParamToObject<StateValue>("state", request.query);
+    const runner = this.scenarioManager.startScenario(id, { config, state });
 
-    if (!scenario) {
+    if (!runner) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
 
-    const request = incomingMessageToRequestValue(req);
-    const state = this.queryParamToObject<StateValue>("state", request.query);
-
-    await this.scenarioManager.startScenario(id, state);
-
     res.setHeader("Cache-Control", "no-cache");
-    res.send("server-mockr: Scenario started");
+    res.send({ scenarioId: id, runnerId: runner.getId(), state: "STARTED" });
   };
 
   /**
@@ -164,7 +192,7 @@ export class ControlServer {
   private handleGetStopScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const scenario = this.scenarioManager.getScenarioRunner(id);
+    const scenario = this.scenarioManager.getScenario(id);
 
     if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
@@ -183,7 +211,7 @@ export class ControlServer {
   private handleGetResetScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const scenario = this.scenarioManager.getScenarioRunner(id);
+    const scenario = this.scenarioManager.getScenario(id);
 
     if (!scenario) {
       res.status(404).send("server-mockr: Scenario not found");
@@ -202,9 +230,9 @@ export class ControlServer {
   private handleGetBootstrapScenario = async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const scenario = this.scenarioManager.getScenarioRunner(id);
+    const runner = this.scenarioManager.getScenarioRunner(id);
 
-    if (!scenario) {
+    if (!runner) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
@@ -215,7 +243,7 @@ export class ControlServer {
     response.headers["Cache-Control"] = "no-cache";
     response.body = "server-mockr: Scenario bootstrapped";
 
-    await scenario.bootstrap(request, response);
+    await runner.bootstrap(request, response);
     await respondWithResponseValue(res, response);
   };
 
@@ -227,25 +255,39 @@ export class ControlServer {
     res: Response
   ) => {
     const { id } = req.params;
+    const request = incomingMessageToRequestValue(req);
+    const config = this.queryParamToObject<ConfigValue>(
+      "config",
+      request.query
+    );
+    const state = this.queryParamToObject<StateValue>("state", request.query);
+    const response = createResponseValue();
 
-    const scenario = this.scenarioManager.getScenarioRunner(id);
+    const runner = this.scenarioManager.startScenario(id, {
+      config,
+      state
+    });
 
-    if (!scenario) {
+    if (!runner) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
 
-    const request = incomingMessageToRequestValue(req);
-    const state = this.queryParamToObject<StateValue>("state", request.query);
-    const response = createResponseValue();
-
-    await this.scenarioManager.startScenario(id, state);
-
     response.headers["Cache-Control"] = "no-cache";
     response.body = "server-mockr: Scenario bootstrapped";
 
-    await scenario.bootstrap(request, response);
+    await runner.bootstrap(request, response);
     await respondWithResponseValue(res, response);
+  };
+
+  /**
+   * This handler lists all scenarios runners.
+   */
+  private handleGetScenarioRunners = async (_req: Request, res: Response) => {
+    const apiScenarios = this.scenarioManager
+      .getScenarioRunners()
+      .map(runner => this.scenarioRunnerToApiScenarioRunner(runner));
+    res.json(apiScenarios);
   };
 
   private queryParamToObject = <T extends object>(
@@ -263,4 +305,31 @@ export class ControlServer {
 
     return obj;
   };
+
+  private scenarioToApiScenario(scenario: Scenario): ApiScenario {
+    const id = scenario.getId();
+    const allRunners = this.scenarioManager.getScenarioRunners();
+    const runners = allRunners
+      .filter(x => x.getScenarioId() === id)
+      .map(x => this.scenarioRunnerToApiScenarioRunner(x));
+    return {
+      configDefinitions: scenario.getVisibleConfigParams(),
+      description: scenario.getFormattedDescription(),
+      id,
+      runners,
+      stateDefinitions: scenario.getVisibleStateParams(),
+      tags: scenario.getTags()
+    };
+  }
+
+  private scenarioRunnerToApiScenarioRunner(
+    runner: ScenarioRunner
+  ): ApiScenarioRunner {
+    return {
+      id: runner.getId(),
+      scenarioId: runner.getScenarioId(),
+      config: runner.getConfig(),
+      state: runner.getState()
+    };
+  }
 }

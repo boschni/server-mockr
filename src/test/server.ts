@@ -16,7 +16,8 @@ const mockr = new ServerMockr({
   mockServerPort: 6002,
   globals: {
     mockServerUrl: "http://localhost:6002"
-  }
+  },
+  multipleActiveScenarios: true
 });
 
 mockr.start();
@@ -33,10 +34,14 @@ Steps:
 - Goto one
 - Goto two`
   )
-  .state("locale", {
+  .config("locale", {
     type: "string",
     enum: ["nl-nl", "en-gb"],
     default: "en-gb"
+  })
+  .config("userId", {
+    type: "string",
+    default: "1"
   })
   .state("todos", {
     type: "string",
@@ -45,7 +50,7 @@ Steps:
   })
   .onBootstrap(ctx =>
     response().redirect(
-      `${ctx.globals.mockServerUrl}/${ctx.state.locale}/todos?test=a&test=b`
+      `${ctx.globals.mockServerUrl}/${ctx.config.locale}/todos?test=a&test=b`
     )
   )
   .onStart(({ scenario }) => {
@@ -94,7 +99,7 @@ Steps:
         response()
           .header("Set-Cookie", "SessionId=SomeSessionId; Path=/; HttpOnly")
           .delay(1000)
-          .json({ locale: ctx.state.locale })
+          .json({ locale: ctx.config.locale })
       )
       .afterRespond(setState("todos", "saved"));
   });
