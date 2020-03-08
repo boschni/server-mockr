@@ -35,8 +35,14 @@ export function isExtendedMatchResult(
   );
 }
 
-export function isPassed(result: MatchResult): boolean {
-  return typeof result === "boolean" ? result : result.pass;
+export function isPassed(result?: MatchResult): boolean {
+  if (typeof result === "undefined") {
+    return false;
+  } else if (typeof result === "boolean") {
+    return result;
+  } else {
+    return result.pass;
+  }
 }
 
 export function addSubResult(

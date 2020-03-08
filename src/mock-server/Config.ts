@@ -12,7 +12,7 @@ export interface Config {
   globals: GlobalsValue;
   logLevel: "info" | "error";
   mockServerPort: number;
-  multipleActiveScenarios: boolean;
+  multipleScenarioRunners: boolean;
   scenarios: Scenario[];
 }
 
@@ -26,7 +26,7 @@ const configDefaults: ConfigDefaults = {
   globals: {},
   logLevel: "info",
   mockServerPort: 3002,
-  multipleActiveScenarios: false,
+  multipleScenarioRunners: false,
   scenarios: []
 };
 

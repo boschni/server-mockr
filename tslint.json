@@ -10,6 +10,7 @@
     "variable-name": false,
     "object-literal-sort-keys": false,
     "unified-signatures": false,
-    "member-access": false
+    "member-access": false,
+    "max-classes-per-file": false
   }
 }

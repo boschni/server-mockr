@@ -54,6 +54,7 @@ Mock HTTP APIs for rapid development and reliable testing.
     - [pointer](#pointer)
     - [prop](#prop)
     - [startsWith](#startsWith)
+  - [Options](#options)
 
 <!-- tocstop -->
 
@@ -607,6 +608,8 @@ scenario
 Scenarios can be used to group expectations together.
 They can be started and stopped programmatically, with the GUI or with the REST API.
 Scenarios also contain individual state, which is useful when simulating stateful web services.
+When a scenario is started, a scenario runner is created.
+A scenario can have multiple runners if the `multipleScenarioRunners` option is set to `true`.
 
 ```js
 const scenario = mockr.scenario("todo-scenario");
@@ -655,7 +658,7 @@ mockr
   .when(request().get("/todos"))
   .respond([]);
 
-mockr.startScenario("todos");
+mockr.startScenarioRunner("todo-scenario");
 ```
 
 Using the JavaScript API with default state:
@@ -666,7 +669,7 @@ mockr
   .when(request().get("/todos"), state("todos", "saved"))
   .respond([{ id: 1 }]);
 
-mockr.startScenario("todos", { todos: "saved" });
+mockr.startScenarioRunner("todo-scenario", { todos: "saved" });
 ```
 
 #### Configurable scenarios
@@ -678,12 +681,12 @@ This can be useful to create data on the fly or to conditionally add expectation
 ```js
 mockr
   .scenario("user-scenario")
-  .state("userId", {
+  .config("userId", {
     type: "string",
     default: "000-000-000-001"
   })
-  .onStart(({ scenario, state }) => {
-    const user = createUser(state.userId);
+  .onStart(({ config, scenario }) => {
+    const user = createUser(config.userId);
     scenario.when(request().get("/user")).respond(user);
   });
 ```
@@ -698,7 +701,7 @@ This can be useful if you for example want to redirect a browser to the applicat
 mockr
   .scenario("todo-scenario")
   .onBootstrap(ctx =>
-    response().redirect(`https://example.com/${ctx.state.locale}/todos`)
+    response().redirect(`https://example.com/${ctx.config.locale}/todos`)
   )
   .when(request().get("/todos"))
   .respond([{ id: 1 }]);
@@ -707,7 +710,7 @@ mockr
 The client can then be bootstrapped by navigating the client to the following address:
 
 ```
-GET http://localhost:3001/api/scenarios/{scenarioID}/start-and-bootstrap?state[locale]=nl-nl
+GET http://localhost:3001/api/scenarios/{scenarioID}/start-and-bootstrap?config[locale]=nl-nl
 ```
 
 ### Matchers
@@ -864,4 +867,19 @@ The `startsWith` matcher can be used to check if a string starts with some prefi
 
 ```js
 mockr.when(request().path(startsWith("/res"))).respond("ok");
+```
+
+### Options
+
+The `ServerMockr` class accepts the following options:
+
+```js
+const { ServerMockr } = require("server-mockr");
+
+const mockr = new ServerMockr({
+  controlServerPort: 6001,
+  mockServerPort: 6002,
+  multipleScenarioRunners: true,
+  globals: { globalValue: "value" }
+});
 ```

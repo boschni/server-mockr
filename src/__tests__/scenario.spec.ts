@@ -1,6 +1,6 @@
 import "jest";
 
-import { ServerMockr, setState, state } from "../";
+import { request, ServerMockr, setState, state } from "..";
 import { get, setup } from "./utils";
 
 describe("scenario()", () => {
@@ -26,7 +26,7 @@ describe("scenario()", () => {
         .scenario("id")
         .when("/test")
         .respond("ok");
-      mockr.startScenario("id");
+      mockr.startScenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
     });
@@ -45,66 +45,19 @@ describe("scenario()", () => {
         .scenario("id")
         .when("/test")
         .respond("ok");
-      mockr.startScenario("id");
+      const id = mockr.startScenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
-      mockr.stopScenario("id");
+      mockr.stopScenarioRunner(id);
       const res2 = await get("/test");
       expect(res2.status).toEqual(404);
-    });
-
-    test("should not keep state when restarted", async () => {
-      mockr
-        .scenario("id")
-        .when("/test", state("language", "nl"))
-        .respond("ok");
-      mockr.startScenario("id", { language: "nl" });
-      const res = await get("/test");
-      expect(await res.text()).toEqual("ok");
-      mockr.stopScenario("id");
-      mockr.startScenario("id");
-      const res2 = await get("/test");
-      expect(res2.status).toEqual(404);
-    });
-
-    test("should set default state", async () => {
-      mockr
-        .scenario("id")
-        .state("language", { type: "string", default: "nl" })
-        .when("/test", state("language", "nl"))
-        .respond("ok");
-      mockr.startScenario("id");
-      const res = await get("/test");
-      expect(await res.text()).toEqual("ok");
-    });
-
-    test("should not match if default state does not match", async () => {
-      mockr
-        .scenario("id")
-        .state("language", { type: "string", default: "nl" })
-        .when("/test", state("language", "en"))
-        .respond("ok");
-      mockr.startScenario("id");
-      const res = await get("/test");
-      expect(res.status).toEqual(404);
-    });
-
-    test("should set given state", async () => {
-      mockr
-        .scenario("id")
-        .state("language", { type: "string", default: "nl" })
-        .when("/test", state("language", "en"))
-        .respond("ok");
-      mockr.startScenario("id", { language: "en" });
-      const res = await get("/test");
-      expect(await res.text()).toEqual("ok");
     });
 
     test("should match multiple expectations", async () => {
       const scenario = mockr.scenario("id");
       scenario.when("/test").respond("ok");
       scenario.when("/test-2").respond("ok");
-      mockr.startScenario("id");
+      mockr.startScenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
       const res2 = await get("/test-2");
@@ -115,7 +68,7 @@ describe("scenario()", () => {
       mockr.scenario("id").onStart(({ scenario }) => {
         scenario.when("/test").respond("ok");
       });
-      mockr.startScenario("id");
+      mockr.startScenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
     });
@@ -130,16 +83,19 @@ describe("scenario()", () => {
           .next();
         scenario.when("/test", state("count", 2)).respond("ok");
       });
-      mockr.startScenario("id");
+      const id = mockr.startScenarioRunner("id");
       const res = await get("/test");
       expect(res.status).toEqual(404);
-      mockr.stopScenario("id");
-      mockr.startScenario("id");
+      mockr.stopScenarioRunner(id);
+      mockr.startScenarioRunner("id");
       const res2 = await get("/test");
       expect(res2.status).toEqual(404);
     });
 
     test("should only have one active scenario if configured", async () => {
+      await mockr.stop();
+      mockr = setup({ multipleScenarioRunners: false });
+
       mockr
         .scenario("id1")
         .when("/test-1")
@@ -150,14 +106,148 @@ describe("scenario()", () => {
         .when("/test-2")
         .respond("ok2");
 
-      mockr.startScenario("id1");
+      mockr.startScenarioRunner("id1");
       const res = await get("/test-1");
       expect(await res.text()).toEqual("ok1");
-      mockr.startScenario("id2");
+      mockr.startScenarioRunner("id2");
       const res2 = await get("/test-1");
       expect(res2.status).toEqual(404);
       const res3 = await get("/test-2");
       expect(await res3.text()).toEqual("ok2");
+
+      await mockr.stop();
+      mockr = setup();
+    });
+
+    test("should be able to run multiple scenarios at once", async () => {
+      await mockr.stop();
+      mockr = setup({ multipleScenarioRunners: true });
+
+      mockr
+        .scenario("no-money")
+        .config("userId", { type: "string" })
+        .onStart(({ config, scenario }) => {
+          scenario
+            .when(
+              request()
+                .get("/users/:id/wallet")
+                .param("id", config.userId)
+            )
+            .respond({ amount: 0 });
+        });
+
+      mockr
+        .scenario("has-money")
+        .config("userId", { type: "string" })
+        .onStart(({ config, scenario }) => {
+          scenario
+            .when(
+              request()
+                .get("/users/:id/wallet")
+                .param("id", config.userId)
+            )
+            .respond({ amount: 100 });
+        });
+
+      const id1 = mockr.startScenarioRunner("no-money", {
+        config: { userId: "1" }
+      });
+      const id2 = mockr.startScenarioRunner("no-money", {
+        config: { userId: "2" }
+      });
+      mockr.startScenarioRunner("has-money", { config: { userId: "3" } });
+
+      const res = await get("/users/1/wallet");
+      expect(await res.json()).toEqual({ amount: 0 });
+
+      const res2 = await get("/users/2/wallet");
+      expect(await res2.json()).toEqual({ amount: 0 });
+
+      const res3 = await get("/users/3/wallet");
+      expect(await res3.json()).toEqual({ amount: 100 });
+
+      mockr.stopScenarioRunner(id1);
+
+      const res4 = await get("/users/1/wallet");
+      expect(res4.status).toEqual(404);
+
+      const res5 = await get("/users/2/wallet");
+      expect(await res5.json()).toEqual({ amount: 0 });
+
+      mockr.stopScenarioRunner(id2);
+
+      const res6 = await get("/users/2/wallet");
+      expect(res6.status).toEqual(404);
+
+      const res7 = await get("/users/3/wallet");
+      expect(await res7.json()).toEqual({ amount: 100 });
+
+      await mockr.stop();
+      mockr = setup();
+    });
+  });
+
+  /*
+   * state()
+   */
+
+  describe(".state()", () => {
+    test("should set default state", async () => {
+      mockr
+        .scenario("id")
+        .state("language", { type: "string", default: "nl" })
+        .when("/test", state("language", "nl"))
+        .respond("ok");
+      mockr.startScenarioRunner("id");
+      const res = await get("/test");
+      expect(await res.text()).toEqual("ok");
+    });
+
+    test("should not match if default state does not match", async () => {
+      mockr
+        .scenario("id")
+        .state("language", { type: "string", default: "nl" })
+        .when("/test", state("language", "en"))
+        .respond("ok");
+      mockr.startScenarioRunner("id");
+      const res = await get("/test");
+      expect(res.status).toEqual(404);
+    });
+
+    test("should set given state", async () => {
+      mockr
+        .scenario("id")
+        .state("language", { type: "string", default: "nl" })
+        .when("/test", state("language", "en"))
+        .respond("ok");
+      mockr.startScenarioRunner("id", { state: { language: "en" } });
+      const res = await get("/test");
+      expect(await res.text()).toEqual("ok");
+    });
+
+    test("should set given state even though it is not defined", async () => {
+      mockr
+        .scenario("id")
+        .when("/test", state("language", "nl"))
+        .respond("ok");
+      mockr.startScenarioRunner("id", { state: { language: "nl" } });
+      const res = await get("/test");
+      expect(await res.text()).toEqual("ok");
+    });
+
+    test("should not keep state when restarted", async () => {
+      mockr
+        .scenario("id")
+        .state("language", { type: "string", default: "en" })
+        .when("/test", state("language", "nl"))
+        .respond("ok");
+      const id = mockr.startScenarioRunner("id", { state: { language: "nl" } });
+      const res = await get("/test");
+      expect(await res.text()).toEqual("ok");
+      mockr.stopScenarioRunner(id);
+      mockr.startScenarioRunner("id");
+      const res2 = await get("/test");
+      expect(res2.status).toEqual(404);
     });
   });
 });

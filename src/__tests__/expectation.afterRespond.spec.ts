@@ -1,6 +1,6 @@
 import "jest";
 
-import { delay, ServerMockr, setState, state } from "../";
+import { delay, ServerMockr, setState, state } from "..";
 import { get, setup, waitFor } from "./utils";
 
 describe("expectation.afterRespond()", () => {

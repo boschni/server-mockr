@@ -3,6 +3,8 @@ import { IncomingMessage, ServerResponse } from "http";
 import fetch, { Headers, RequestInit } from "node-fetch";
 
 import {
+  ConfigDefinition,
+  ConfigValue,
   CookiesValue,
   HeadersValue,
   MethodValue,
@@ -10,7 +12,7 @@ import {
   QueryValue,
   RequestValue,
   ResponseValue,
-  StateConfig,
+  StateDefinition,
   StateValue
 } from "./Values";
 
@@ -72,14 +74,27 @@ export const respondWithNotFound = async (
   });
 };
 
+export const createDefaultedConfig = (
+  providedConfig?: ConfigValue,
+  definitions: ConfigDefinition[] = []
+): ConfigValue => {
+  const configDefaults: ConfigValue = {};
+
+  for (const def of definitions) {
+    configDefaults[def.name] = def.schema.default;
+  }
+
+  return { ...configDefaults, ...providedConfig };
+};
+
 export const createDefaultedState = (
   providedState?: StateValue,
-  configs: StateConfig[] = []
-) => {
+  definitions: StateDefinition[] = []
+): StateValue => {
   const stateDefaults: StateValue = {};
 
-  for (const param of configs) {
-    stateDefaults[param.name] = param.schema.default;
+  for (const def of definitions) {
+    stateDefaults[def.name] = def.schema.default;
   }
 
   return { ...stateDefaults, ...providedState };

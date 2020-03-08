@@ -1,6 +1,6 @@
 import "jest";
 
-import { proxyRequest, request, response, ServerMockr, startsWith } from "../";
+import { proxyRequest, request, response, ServerMockr, startsWith } from "..";
 import { get, post, setup } from "./utils";
 
 describe("response.proxy()", () => {

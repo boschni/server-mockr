@@ -1,6 +1,6 @@
 import "jest";
 
-import { globals, ServerMockr, setState, state } from "../";
+import { globals, ServerMockr, setState, state } from "..";
 import { get, setup } from "./utils";
 
 describe("mockr.when()", () => {

@@ -1,72 +1,85 @@
-import MarkdownIt from "markdown-it";
-
 import { Config } from "./Config";
+// tslint:disable-next-line: no-circular-imports
 import {
   ExpectationManager,
   ExpectationManagerRequestContext
 } from "./ExpectationManager";
-import { ExpectationRequestContext } from "./ExpectationRunner";
 import { Logger } from "./Logger";
-import { ScenarioRequestLog } from "./RequestLogManager";
+// tslint:disable-next-line: no-circular-imports
+import { RequestScenarioLogger } from "./loggers/RequestScenarioLogger";
 import { Scenario } from "./Scenario";
+import { OnBootstrapScenarioContext, OnStartScenarioContext } from "./Scenario";
+import { createDefaultedConfig, createDefaultedState } from "./valueHelpers";
 import {
-  OnBootstrapScenarioContext,
-  OnStartScenarioContext,
-  ScenarioConfig
-} from "./Scenario";
-import { clone } from "./utils/clone";
-import { createDefaultedState } from "./valueHelpers";
-import { RequestValue, ResponseValue, StateConfig, StateValue } from "./Values";
+  ConfigValue,
+  ExpectationValue,
+  RequestValue,
+  ResponseValue,
+  StateValue
+} from "./Values";
 
 /*
  * TYPES
  */
 
 export interface ScenarioRequestContext {
-  scenarioRequestLogs: ScenarioRequestLog[];
+  scenarioLogger: RequestScenarioLogger;
   request: RequestValue;
   response: ResponseValue;
 }
 
-/*
- * HELPERS
- */
-
-const md = new MarkdownIt({
-  html: true
-});
+export interface StartScenarioParams {
+  config?: ConfigValue;
+  state?: StateValue;
+}
 
 /*
  * SCENARIO RUNNER
  */
 
 export class ScenarioRunner {
+  private static id = 0;
+
+  private id: number;
   private active = false;
   private expectationManager?: ExpectationManager;
-  private scenarioConfig: ScenarioConfig;
+  private startedDateTime: string;
 
   constructor(
     private config: Config,
     private logger: Logger,
     private scenario: Scenario
   ) {
-    this.scenarioConfig = this.scenario.getConfig();
+    this.id = ++ScenarioRunner.id;
+    this.startedDateTime = new Date().toISOString();
   }
 
-  async start(state?: StateValue) {
+  start(params: StartScenarioParams = {}) {
     this.active = true;
 
-    const { expectations, stateConfigs, onStart } = this.scenarioConfig;
-    const defaultedState = createDefaultedState(state, stateConfigs);
+    const scenario = this.scenario;
+
+    const defaultedConfig = createDefaultedConfig(
+      params.config,
+      scenario.getConfigParams()
+    );
+
+    const defaultedState = createDefaultedState(
+      params.state,
+      scenario.getStateParams()
+    );
 
     const expectationManager = new ExpectationManager(this.config, this.logger);
-    expectationManager.addExpectations(expectations);
+    expectationManager.addExpectations(scenario.getExpectations());
     this.expectationManager = expectationManager;
 
+    const onStart = scenario.getOnStartCallback();
+
     if (onStart) {
-      const runtimeScenario = new Scenario(this.getId());
+      const runtimeScenario = new Scenario(scenario.getId());
 
       const ctx: OnStartScenarioContext = {
+        config: defaultedConfig,
         globals: this.config.globals,
         scenario: runtimeScenario,
         state: defaultedState
@@ -74,11 +87,10 @@ export class ScenarioRunner {
 
       onStart(ctx);
 
-      const runtimeScenarioConfig = runtimeScenario.getConfig();
-      expectationManager.addExpectations(runtimeScenarioConfig.expectations);
+      expectationManager.addExpectations(runtimeScenario.getExpectations());
     }
 
-    expectationManager.start(defaultedState);
+    expectationManager.start(defaultedConfig, defaultedState);
   }
 
   stop() {
@@ -96,13 +108,14 @@ export class ScenarioRunner {
       return;
     }
 
-    const { onBootstrap } = this.scenarioConfig;
+    const onBootstrap = this.scenario.getOnBootstrapCallback();
 
     if (!onBootstrap) {
       return;
     }
 
     const ctx: OnBootstrapScenarioContext = {
+      config: this.expectationManager.getConfig(),
       globals: this.config.globals,
       req,
       res,
@@ -115,8 +128,8 @@ export class ScenarioRunner {
       return;
     }
 
-    const expectationValue: ExpectationRequestContext = {
-      expectationRequestLogs: [],
+    const expectationValue: ExpectationValue = {
+      config: ctx.config,
       globals: ctx.globals,
       req: ctx.req,
       res: ctx.res,
@@ -132,16 +145,8 @@ export class ScenarioRunner {
       return false;
     }
 
-    const scenarioRequestLog: ScenarioRequestLog = {
-      expectations: [],
-      id: this.scenarioConfig.id,
-      state: clone(this.getState())
-    };
-
-    ctx.scenarioRequestLogs.push(scenarioRequestLog);
-
     const expectationManagerCtx: ExpectationManagerRequestContext = {
-      expectationRequestLogs: scenarioRequestLog.expectations,
+      scenarioLogger: ctx.scenarioLogger,
       request: ctx.request,
       response: ctx.response
     };
@@ -149,37 +154,24 @@ export class ScenarioRunner {
     return this.expectationManager.onRequest(expectationManagerCtx);
   }
 
-  getId(): string {
-    return this.scenarioConfig.id;
+  getId(): number {
+    return this.id;
   }
 
-  getDescription(): string {
-    return this.scenarioConfig.description;
+  getScenarioId(): string {
+    return this.scenario.getId();
   }
 
-  getFormattedDescription(): string {
-    let description = this.getDescription().trim();
-    if (typeof description === "string") {
-      for (const [key, value] of Object.entries(this.config.globals)) {
-        description = description.replace(`{{globals.${key}}}`, value);
-      }
-
-      description = md.render(description);
-    }
-
-    return description;
-  }
-
-  getTags(): string[] {
-    return this.scenarioConfig.tags;
-  }
-
-  getVisibleStateParams(): StateConfig[] {
-    return this.scenarioConfig.stateConfigs.filter(x => !x.schema.hidden);
+  getConfig(): ConfigValue {
+    return this.expectationManager?.getConfig() ?? {};
   }
 
   getState(): StateValue {
     return this.expectationManager?.getState() ?? {};
+  }
+
+  getStartedDateTime(): string {
+    return this.startedDateTime;
   }
 
   isActive(): boolean {

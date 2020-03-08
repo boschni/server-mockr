@@ -13,7 +13,7 @@ import {
   request,
   ServerMockr,
   startsWith
-} from "../";
+} from "..";
 import { get, post, setup } from "./utils";
 
 describe("matchers", () => {

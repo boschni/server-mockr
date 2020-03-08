@@ -1,6 +1,6 @@
 import "jest";
 
-import { response, ServerMockr } from "../";
+import { response, ServerMockr } from "..";
 import { get, setup } from "./utils";
 
 describe("expectation.respond()", () => {

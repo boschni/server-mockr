@@ -8,6 +8,7 @@ import {
   ExpectationManagerRequestContext
 } from "./ExpectationManager";
 import { Logger } from "./Logger";
+import { RequestLogger } from "./loggers/RequestLogger";
 import { RequestLogManager } from "./RequestLogManager";
 import {
   ScenarioManager,
@@ -72,11 +73,11 @@ export class ServerManager {
   private onRequest = async (req: IncomingMessage, res: ServerResponse) => {
     const request = incomingMessageToRequestValue(req);
     const response = createResponseValue();
-    const log = this.requestLogManager.log(request);
+    const requestLogger = new RequestLogger(request);
 
     const globalExpectationManagerRequestCtx: ExpectationManagerRequestContext = {
-      expectationRequestLogs: log.expectations,
       request,
+      requestLogger,
       response
     };
 
@@ -87,8 +88,8 @@ export class ServerManager {
     if (!handled) {
       const scenarioManagerRequestCtx: ScenarioManagerRequestContext = {
         request,
-        response,
-        scenarioRequestLogs: log.scenarios
+        requestLogger,
+        response
       };
 
       handled = await this.scenarioManager.onRequest(scenarioManagerRequestCtx);
@@ -99,8 +100,10 @@ export class ServerManager {
       return;
     }
 
-    log.response = response;
-
     await respondWithResponseValue(res, response);
+
+    requestLogger.logResponse(response);
+
+    this.requestLogManager.log(requestLogger);
   };
 }

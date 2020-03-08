@@ -5,15 +5,23 @@ import {
   ExpectationRunner
 } from "./ExpectationRunner";
 import { Logger } from "./Logger";
-import { ExpectationRequestLog } from "./RequestLogManager";
-import { RequestValue, ResponseValue, StateValue } from "./Values";
+import { RequestLogger } from "./loggers/RequestLogger";
+import { RequestScenarioLogger } from "./loggers/RequestScenarioLogger";
+import {
+  ConfigValue,
+  ExpectationValue,
+  RequestValue,
+  ResponseValue,
+  StateValue
+} from "./Values";
 
 /*
  * TYPES
  */
 
 export interface ExpectationManagerRequestContext {
-  expectationRequestLogs: ExpectationRequestLog[];
+  requestLogger?: RequestLogger;
+  scenarioLogger?: RequestScenarioLogger;
   request: RequestValue;
   response: ResponseValue;
 }
@@ -25,13 +33,15 @@ export interface ExpectationManagerRequestContext {
 export class ExpectationManager {
   private active = false;
   private expectationRunners: ExpectationRunner[] = [];
+  private expectationConfig: ConfigValue = {};
   private expectationState: StateValue = {};
 
   constructor(private config: Config, private logger: Logger) {}
 
-  start(state?: StateValue) {
+  start(config?: ConfigValue, state?: StateValue) {
     this.active = true;
 
+    this.expectationConfig = { ...config };
     this.expectationState = { ...state };
 
     for (const runner of this.expectationRunners) {
@@ -70,6 +80,10 @@ export class ExpectationManager {
     }
   }
 
+  getConfig(): ConfigValue {
+    return this.expectationConfig;
+  }
+
   getState(): StateValue {
     return this.expectationState;
   }
@@ -80,13 +94,22 @@ export class ExpectationManager {
     }
 
     for (const runner of this.expectationRunners) {
-      const expectationCtx: ExpectationRequestContext = {
-        expectationRequestLogs: ctx.expectationRequestLogs,
+      const expectationLogger = ctx.scenarioLogger
+        ? ctx.scenarioLogger.getExpectationLogger(runner)
+        : ctx.requestLogger!.getExpectationLogger(runner);
+
+      const expectationValue: ExpectationValue = {
+        config: this.expectationConfig,
         globals: this.config.globals,
         req: ctx.request,
         res: ctx.response,
         state: this.expectationState,
         times: 0
+      };
+
+      const expectationCtx: ExpectationRequestContext = {
+        expectationValue,
+        expectationLogger
       };
 
       const handled = await runner.onRequest(expectationCtx);

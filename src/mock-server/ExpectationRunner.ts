@@ -9,7 +9,8 @@ import {
   RespondInput
 } from "./Expectation";
 import { Logger } from "./Logger";
-import { ExpectationRequestLog } from "./RequestLogManager";
+// tslint:disable-next-line: no-circular-imports
+import { RequestExpectationLogger } from "./loggers/RequestExpectationLogger";
 import { response, Response } from "./Response";
 import { isMatchResult, isPassed, MatchResult } from "./value-matchers";
 import { ExpectationValue } from "./Values";
@@ -18,8 +19,9 @@ import { ExpectationValue } from "./Values";
  * TYPES
  */
 
-export interface ExpectationRequestContext extends ExpectationValue {
-  expectationRequestLogs: ExpectationRequestLog[];
+export interface ExpectationRequestContext {
+  expectationLogger: RequestExpectationLogger;
+  expectationValue: ExpectationValue;
 }
 
 /*
@@ -51,13 +53,16 @@ export class ExpectationRunner {
     this.timesMatched = 0;
   }
 
+  getId(): string | number {
+    return this.id;
+  }
+
   async onRequest(ctx: ExpectationRequestContext): Promise<boolean> {
     if (!this.active) {
       return false;
     }
 
-    const log: ExpectationRequestLog = { id: this.id };
-    ctx.expectationRequestLogs.push(log);
+    const { expectationValue } = ctx;
 
     const {
       afterRespondActions,
@@ -69,10 +74,10 @@ export class ExpectationRunner {
       whenMatchers
     } = this.expectationConfig;
 
-    ctx.times = this.timesMatched;
+    expectationValue.times = this.timesMatched;
 
     const matchResult = await this.match(whenMatchers, ctx);
-    log.matchResult = matchResult;
+    ctx.expectationLogger.logMatchResult(matchResult);
 
     if (!isPassed(matchResult)) {
       return false;
@@ -85,7 +90,7 @@ export class ExpectationRunner {
     }
 
     const verifyResult = await this.match(verifyMatchers, ctx);
-    log.verifyResult = verifyResult;
+    ctx.expectationLogger.logVerifyResult(verifyResult);
 
     if (!isPassed(verifyResult)) {
       this.logger.log("info", "Verify failed because:");
@@ -113,6 +118,8 @@ export class ExpectationRunner {
     values: ContextMatcherInput[],
     ctx: ExpectationRequestContext
   ): Promise<MatchResult> {
+    const { expectationValue } = ctx;
+
     let result: MatchResult = true;
 
     if (!values.length) {
@@ -120,14 +127,15 @@ export class ExpectationRunner {
     }
 
     for (const value of values) {
-      const output = typeof value === "function" ? value(ctx) : value;
+      const output =
+        typeof value === "function" ? value(expectationValue) : value;
 
       if (isMatchResult(output)) {
         result = output;
       } else if (typeof output === "string") {
-        result = request(output).match(ctx);
+        result = request(output).match(expectationValue);
       } else {
-        result = output.match(ctx);
+        result = output.match(expectationValue);
       }
 
       if (!isPassed(result)) {
@@ -142,8 +150,10 @@ export class ExpectationRunner {
     value: RespondInput,
     ctx: ExpectationRequestContext
   ): Promise<void> {
+    const { expectationValue } = ctx;
+
     if (typeof value === "function") {
-      value = value(ctx);
+      value = value(expectationValue);
     }
 
     if (value instanceof Promise) {
@@ -156,20 +166,23 @@ export class ExpectationRunner {
 
     const res = value instanceof Response ? value : new Response(value);
 
-    await res._apply(ctx);
+    await res._apply(expectationValue);
   }
 
   private async afterRespond(
     values: ActionInput[],
     ctx: ExpectationRequestContext
   ): Promise<void> {
+    const { expectationValue } = ctx;
+
     for (const value of values) {
-      const result = typeof value === "function" ? value(ctx) : value;
+      const result =
+        typeof value === "function" ? value(expectationValue) : value;
 
       if (result instanceof Promise) {
         await result;
       } else if (result) {
-        await executeAction(result, ctx);
+        await executeAction(result, expectationValue);
       }
     }
   }

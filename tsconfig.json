@@ -3,6 +3,7 @@
     "declaration": true,
     "esModuleInterop": true,
     "incremental": true,
+    "jsx": "react",
     "module": "commonjs",
     "noImplicitAny": true,
     "noUnusedLocals": true,

@@ -1,13 +1,18 @@
-import { ServerMockr } from "./lib/ServerMockr";
+import { ServerMockr } from "./mock-server/ServerMockr";
 
-export { ServerMockr } from "./lib/ServerMockr";
-export { InitialConfig } from "./lib/Config";
-export { delay, sendRequest, setState } from "./lib/actions";
-export { Expectation, expect } from "./lib/Expectation";
-export { Scenario, scenario } from "./lib/Scenario";
-export { proxyRequest, ProxyRequest } from "./lib/ProxyRequest";
-export { Response, response } from "./lib/Response";
-export { globals, request, state } from "./lib/context-matchers";
+export { ServerMockr } from "./mock-server/ServerMockr";
+export { InitialConfig } from "./mock-server/Config";
+export { delay, sendRequest, setState } from "./mock-server/actions";
+export { Expectation, expect } from "./mock-server/Expectation";
+export { Scenario, scenario } from "./mock-server/Scenario";
+export { proxyRequest, ProxyRequest } from "./mock-server/ProxyRequest";
+export { Response, response } from "./mock-server/Response";
+export {
+  config,
+  globals,
+  request,
+  state
+} from "./mock-server/context-matchers";
 export {
   MatchFn,
   MatchResult,
@@ -27,5 +32,5 @@ export {
   pointer,
   prop,
   startsWith
-} from "./lib/value-matchers";
+} from "./mock-server/value-matchers";
 export default ServerMockr;

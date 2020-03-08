@@ -1,6 +1,6 @@
 import "jest";
 
-import { anyOf, matchesObject, not, request, ServerMockr } from "../";
+import { anyOf, matchesObject, not, request, ServerMockr } from "..";
 import { del, get, post, setup } from "./utils";
 
 describe("request()", () => {
