@@ -97,10 +97,14 @@ export const ScenarioPage: React.FC = () => {
       <Table>
         <TableHead>
           <TableHeadRow>
-            <TableHeadCell width="40%">ID</TableHeadCell>
-            <TableHeadCell width="20%">Tags</TableHeadCell>
-            <TableHeadCell width="100px">Runners</TableHeadCell>
-            <TableHeadCell width="100px">Actions</TableHeadCell>
+            <TableHeadCell style={{ width: "40%" }}>ID</TableHeadCell>
+            <TableHeadCell style={{ width: "20%" }}>Tags</TableHeadCell>
+            <TableHeadCell style={{ width: "100px", textAlign: "center" }}>
+              Runners
+            </TableHeadCell>
+            <TableHeadCell style={{ width: "100px", textAlign: "right" }}>
+              Actions
+            </TableHeadCell>
           </TableHeadRow>
         </TableHead>
         <TableBody>
@@ -111,8 +115,10 @@ export const ScenarioPage: React.FC = () => {
                   <React.Fragment>
                     <TableBodyCell>{scenario.id}</TableBodyCell>
                     <TableBodyCell>{scenario.tags.join(", ")}</TableBodyCell>
-                    <TableBodyCell>{scenario.runners.length}</TableBodyCell>
-                    <TableBodyCell>
+                    <TableBodyCell style={{ textAlign: "center" }}>
+                      {scenario.runners.length}
+                    </TableBodyCell>
+                    <TableBodyCell style={{ textAlign: "right" }}>
                       <button onClick={() => startScenario(scenario)}>
                         Start
                       </button>

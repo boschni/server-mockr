@@ -17,7 +17,7 @@ import {
  * TYPES
  */
 
-export type OnStartCallback = (ctx: OnStartScenarioContext) => void;
+export type OnStartScenarioCallback = (ctx: OnStartScenarioContext) => void;
 
 export interface OnStartScenarioContext {
   config: ConfigValue;
@@ -26,7 +26,7 @@ export interface OnStartScenarioContext {
   state: StateValue;
 }
 
-export type OnBootstrapCallback = (
+export type OnBootstrapScenarioCallback = (
   ctx: OnBootstrapScenarioContext
 ) => Response | void;
 
@@ -63,8 +63,8 @@ export class Scenario {
   private _description = "";
   private _expectations: Expectation[] = [];
   private _id: string;
-  private _onBootstrap?: OnBootstrapCallback;
-  private _onStart?: OnStartCallback;
+  private _onBootstrap?: OnBootstrapScenarioCallback;
+  private _onStart?: OnStartScenarioCallback;
   private _stateDefinitions: StateDefinition[] = [];
   private _tags: string[] = [];
 
@@ -103,12 +103,12 @@ export class Scenario {
     return this;
   }
 
-  onBootstrap(cb: OnBootstrapCallback): this {
+  onBootstrap(cb: OnBootstrapScenarioCallback): this {
     this._onBootstrap = cb;
     return this;
   }
 
-  onStart(cb: OnStartCallback): this {
+  onStart(cb: OnStartScenarioCallback): this {
     this._onStart = cb;
     return this;
   }
@@ -155,11 +155,11 @@ export class Scenario {
     return this._expectations;
   }
 
-  getOnStartCallback(): OnStartCallback | undefined {
+  getOnStartCallback(): OnStartScenarioCallback | undefined {
     return this._onStart;
   }
 
-  getOnBootstrapCallback(): OnBootstrapCallback | undefined {
+  getOnBootstrapCallback(): OnBootstrapScenarioCallback | undefined {
     return this._onBootstrap;
   }
 }

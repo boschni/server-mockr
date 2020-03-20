@@ -24,14 +24,9 @@ export const TableHeadRow: React.FC = ({ children }) => <tr>{children}</tr>;
  * COMPONENT
  */
 
-interface TableHeadCellProps {
-  width?: string;
-}
-
-export const TableHeadCell: React.FC<TableHeadCellProps> = ({
-  children,
-  width
-}) => <th style={{ width }}>{children}</th>;
+export const TableHeadCell: React.FC<TdHTMLAttributes<
+  HTMLTableDataCellElement
+>> = ({ children, ...rest }) => <th {...rest}>{children}</th>;
 
 /*
  * COMPONENT

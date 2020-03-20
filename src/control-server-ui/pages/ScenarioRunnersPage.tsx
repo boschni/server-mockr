@@ -61,10 +61,12 @@ export const ScenarioRunnersPage: React.FC = () => {
       <Table>
         <TableHead>
           <TableHeadRow>
-            <TableHeadCell width="100px">ID</TableHeadCell>
+            <TableHeadCell style={{ width: "100px" }}>ID</TableHeadCell>
             <TableHeadCell>Scenario ID</TableHeadCell>
             <TableHeadCell>Status</TableHeadCell>
-            <TableHeadCell width="200px">Actions</TableHeadCell>
+            <TableHeadCell style={{ width: "200px", textAlign: "right" }}>
+              Actions
+            </TableHeadCell>
           </TableHeadRow>
         </TableHead>
         <TableBody>
@@ -76,7 +78,7 @@ export const ScenarioRunnersPage: React.FC = () => {
                     <TableBodyCell>{runner.id}</TableBodyCell>
                     <TableBodyCell>{runner.scenarioId}</TableBodyCell>
                     <TableBodyCell>{runner.status}</TableBodyCell>
-                    <TableBodyCell>
+                    <TableBodyCell style={{ textAlign: "right" }}>
                       <button onClick={() => stopRunner(runner)}>Stop</button>
                       <button onClick={() => resetRunner(runner)}>Reset</button>
                       <form
