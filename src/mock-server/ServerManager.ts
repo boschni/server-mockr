@@ -8,8 +8,8 @@ import {
   ExpectationManagerRequestContext
 } from "./ExpectationManager";
 import { Logger } from "./Logger";
-import { RequestLogger } from "./loggers/RequestLogger";
-import { RequestLogManager } from "./RequestLogManager";
+import { RequestLogger } from "./request-logging/RequestLogger";
+import { RequestLogManager } from "./request-logging/RequestLogManager";
 import {
   ScenarioManager,
   ScenarioManagerRequestContext

@@ -5,8 +5,9 @@ import {
   ExpectationRunner
 } from "./ExpectationRunner";
 import { Logger } from "./Logger";
-import { RequestLogger } from "./loggers/RequestLogger";
-import { RequestScenarioLogger } from "./loggers/RequestScenarioLogger";
+import { RequestExpectationLogger } from "./request-logging/RequestExpectationLogger";
+import { RequestLogger } from "./request-logging/RequestLogger";
+import { RequestScenarioLogger } from "./request-logging/RequestScenarioLogger";
 import {
   ConfigValue,
   ExpectationValue,
@@ -94,9 +95,13 @@ export class ExpectationManager {
     }
 
     for (const runner of this.expectationRunners) {
-      const expectationLogger = ctx.scenarioLogger
-        ? ctx.scenarioLogger.getExpectationLogger(runner)
-        : ctx.requestLogger!.getExpectationLogger(runner);
+      const expectationLogger = new RequestExpectationLogger(runner);
+
+      if (ctx.scenarioLogger) {
+        ctx.scenarioLogger.addExpectationLogger(expectationLogger);
+      } else if (ctx.requestLogger) {
+        ctx.requestLogger.addExpectationLogger(expectationLogger);
+      }
 
       const expectationValue: ExpectationValue = {
         config: this.expectationConfig,

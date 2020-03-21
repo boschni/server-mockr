@@ -5,7 +5,7 @@ import path from "path";
 
 import { Config } from "../mock-server/Config";
 import { Logger } from "../mock-server/Logger";
-import { RequestLogManager } from "../mock-server/RequestLogManager";
+import { RequestLogManager } from "../mock-server/request-logging/RequestLogManager";
 import { Scenario } from "../mock-server/Scenario";
 import { ScenarioManager } from "../mock-server/ScenarioManager";
 import { ScenarioRunner } from "../mock-server/ScenarioRunner";

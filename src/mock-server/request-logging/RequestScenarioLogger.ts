@@ -1,4 +1,3 @@
-import { ExpectationRunner } from "../ExpectationRunner";
 // tslint:disable-next-line: no-circular-imports
 import { ScenarioRunner } from "../ScenarioRunner";
 import { clone } from "../utils/clone";
@@ -38,10 +37,8 @@ export class RequestScenarioLogger {
     this.state = clone(runner.getState());
   }
 
-  getExpectationLogger(runner: ExpectationRunner) {
-    const expectationLogger = new RequestExpectationLogger(runner);
-    this.expectationLoggers.push(expectationLogger);
-    return expectationLogger;
+  addExpectationLogger(logger: RequestExpectationLogger) {
+    this.expectationLoggers.push(logger);
   }
 
   getJSON(): ScenarioRunnerRequestLog {

@@ -10,7 +10,7 @@ import {
 } from "./Expectation";
 import { Logger } from "./Logger";
 // tslint:disable-next-line: no-circular-imports
-import { RequestExpectationLogger } from "./loggers/RequestExpectationLogger";
+import { RequestExpectationLogger } from "./request-logging/RequestExpectationLogger";
 import { response, Response } from "./Response";
 import { isMatchResult, isPassed, MatchResult } from "./value-matchers";
 import { ExpectationValue } from "./Values";

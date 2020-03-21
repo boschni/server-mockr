@@ -1,6 +1,7 @@
 import { Config } from "./Config";
 import { Logger } from "./Logger";
-import { RequestLogger } from "./loggers/RequestLogger";
+import { RequestLogger } from "./request-logging/RequestLogger";
+import { RequestScenarioLogger } from "./request-logging/RequestScenarioLogger";
 import { Scenario } from "./Scenario";
 import {
   ScenarioRequestContext,
@@ -126,10 +127,13 @@ export class ScenarioManager {
     }
 
     for (const runner of this.getActiveScenarioRunners()) {
+      const scenarioLogger = new RequestScenarioLogger(runner);
+      ctx.requestLogger.addScenarioLogger(scenarioLogger);
+
       const scenarioRequestContext: ScenarioRequestContext = {
         request: ctx.request,
         response: ctx.response,
-        scenarioLogger: ctx.requestLogger.getScenarioLogger(runner)
+        scenarioLogger
       };
 
       const handled = await runner.onRequest(scenarioRequestContext);

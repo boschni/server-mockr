@@ -1,12 +1,11 @@
 import { Config } from "./Config";
-// tslint:disable-next-line: no-circular-imports
 import {
   ExpectationManager,
   ExpectationManagerRequestContext
 } from "./ExpectationManager";
 import { Logger } from "./Logger";
 // tslint:disable-next-line: no-circular-imports
-import { RequestScenarioLogger } from "./loggers/RequestScenarioLogger";
+import { RequestScenarioLogger } from "./request-logging/RequestScenarioLogger";
 import { Scenario } from "./Scenario";
 import { OnBootstrapScenarioContext, OnStartScenarioContext } from "./Scenario";
 import { createDefaultedConfig, createDefaultedState } from "./valueHelpers";

@@ -1,5 +1,5 @@
-import { Config } from "./Config";
-import { LogEntry, RequestLogger } from "./loggers/RequestLogger";
+import { Config } from "../Config";
+import { LogEntry, RequestLogger } from "./RequestLogger";
 
 /*
  * TYPES

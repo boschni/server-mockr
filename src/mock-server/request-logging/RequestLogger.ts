@@ -1,5 +1,3 @@
-import { ExpectationRunner } from "../ExpectationRunner";
-import { ScenarioRunner } from "../ScenarioRunner";
 import { clone } from "../utils/clone";
 import { isPassed } from "../value-matchers/MatchFn";
 import { RequestValue, ResponseValue } from "../Values";
@@ -52,16 +50,12 @@ export class RequestLogger {
     this.startedDateTime = new Date().toISOString();
   }
 
-  getExpectationLogger(runner: ExpectationRunner) {
-    const expectationLogger = new RequestExpectationLogger(runner);
-    this.expectationLoggers.push(expectationLogger);
-    return expectationLogger;
+  addExpectationLogger(logger: RequestExpectationLogger) {
+    this.expectationLoggers.push(logger);
   }
 
-  getScenarioLogger(runner: ScenarioRunner) {
-    const scenarioLogger = new RequestScenarioLogger(runner);
-    this.scenarioLoggers.push(scenarioLogger);
-    return scenarioLogger;
+  addScenarioLogger(logger: RequestScenarioLogger) {
+    this.scenarioLoggers.push(logger);
   }
 
   logResponse(responseValue: ResponseValue) {
