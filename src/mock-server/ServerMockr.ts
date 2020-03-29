@@ -3,6 +3,7 @@ import { Config, createConfig, InitialConfig } from "./Config";
 import { ContextMatcherInput, Expectation } from "./Expectation";
 import { ExpectationManager } from "./ExpectationManager";
 import { Logger } from "./Logger";
+import { HAR } from "./request-logging/HAR";
 import { RequestLogManager } from "./request-logging/RequestLogManager";
 import { Scenario } from "./Scenario";
 import { ScenarioManager } from "./ScenarioManager";
@@ -89,6 +90,10 @@ export class ServerMockr {
 
   stopScenarioRunnersByScenarioId(scenarioId?: string) {
     this.scenarioManager.stopScenarioRunnersByScenarioId(scenarioId);
+  }
+
+  getHAR(): HAR {
+    return this.requestLogManager.getHAR();
   }
 
   start() {

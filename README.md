@@ -55,6 +55,8 @@ Mock HTTP APIs for rapid development and reliable testing.
     - [pointer](#pointer)
     - [prop](#prop)
     - [startsWith](#startsWith)
+  - [Logging](#logging)
+    - [HAR](#har)
   - [Options](#options)
 
 <!-- tocstop -->
@@ -886,6 +888,24 @@ The `startsWith` matcher can be used to check if a string starts with some prefi
 
 ```js
 mockr.when(request().path(startsWith("/res"))).respond("ok");
+```
+
+### Logging
+
+#### HAR
+
+All requests and responses are logged and can be retrieved as HTTP Archive / [HAR](<https://en.wikipedia.org/wiki/HAR_(file_format)>).
+
+Using the JS API:
+
+```js
+const har = mockr.getHAR();
+```
+
+Using the REST API:
+
+```
+GET http://localhost:3001/api/logging/har
 ```
 
 ### Options

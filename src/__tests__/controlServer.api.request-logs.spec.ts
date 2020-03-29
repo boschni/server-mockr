@@ -37,7 +37,7 @@ describe("controlServer", () => {
       await get("/test");
 
       const logRes = await get(
-        controlUrl(`/api/scenario-runners/${controlJson.runnerId}/request-logs`)
+        controlUrl(`/api/scenario-runners/${controlJson.runnerId}/har`)
       );
       const logJson: ApiScenarioRunnersRequestLogsSuccessResponse = await logRes.json();
 
@@ -71,7 +71,7 @@ describe("controlServer", () => {
       await get("/test-2");
 
       const logRes = await get(
-        controlUrl(`/api/scenario-runners/${controlJson.runnerId}/request-logs`)
+        controlUrl(`/api/scenario-runners/${controlJson.runnerId}/har`)
       );
       const logJson: ApiScenarioRunnersRequestLogsSuccessResponse = await logRes.json();
 

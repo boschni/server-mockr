@@ -3,6 +3,13 @@ import { ServerMockr } from "./mock-server/ServerMockr";
 export { ServerMockr } from "./mock-server/ServerMockr";
 export { InitialConfig } from "./mock-server/Config";
 export { delay, sendRequest, setState } from "./mock-server/actions";
+export {
+  HAR,
+  HARLog,
+  HARLogEntry,
+  HARRequest,
+  HARResponse
+} from "./mock-server/request-logging/HAR";
 export { Expectation, expect } from "./mock-server/Expectation";
 export {
   OnBootstrapScenarioCallback,

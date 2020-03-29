@@ -1,26 +1,13 @@
 import { Config } from "../Config";
-import { LogEntry, RequestLogger } from "./RequestLogger";
-
-/*
- * TYPES
- */
-
-export interface HAR {
-  log: Log;
-}
-
-export interface Log {
-  version: string;
-  creator: { name: string; version: string };
-  entries: LogEntry[];
-}
+import { HAR, HARLogEntry } from "./HAR";
+import { RequestLogger } from "./RequestLogger";
 
 /*
  * LOG MANAGER
  */
 
 export class RequestLogManager {
-  private entries: LogEntry[] = [];
+  private entries: HARLogEntry[] = [];
 
   constructor(protected config: Config) {}
 
@@ -65,7 +52,7 @@ export class RequestLogManager {
     return this.toHAR(entries);
   }
 
-  protected toHAR(entries: LogEntry[]): HAR {
+  protected toHAR(entries: HARLogEntry[]): HAR {
     return {
       log: {
         creator: {

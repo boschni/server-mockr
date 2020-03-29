@@ -5,10 +5,8 @@ import path from "path";
 
 import { Config } from "../mock-server/Config";
 import { Logger } from "../mock-server/Logger";
-import {
-  HAR,
-  RequestLogManager
-} from "../mock-server/request-logging/RequestLogManager";
+import { HAR } from "../mock-server/request-logging/HAR";
+import { RequestLogManager } from "../mock-server/request-logging/RequestLogManager";
 import { Scenario } from "../mock-server/Scenario";
 import { ScenarioManager } from "../mock-server/ScenarioManager";
 import { ScenarioRunner } from "../mock-server/ScenarioRunner";
@@ -80,7 +78,7 @@ export class ControlServer {
       })
     );
     this.app.get("/", this.handleGetRoot);
-    this.app.get("/api/request-logs", this.handleGetRequestLogs);
+    this.app.get("/api/logging/har", this.handleGetLoggingHAR);
 
     // Scenarios
     this.app.get("/api/scenarios", this.handleGetScenarios);
@@ -107,8 +105,8 @@ export class ControlServer {
       this.handlePostResetScenarioRunner
     );
     this.app.get(
-      "/api/scenario-runners/:id/request-logs",
-      this.handleGetScenarioRunnerRequestLogs
+      "/api/scenario-runners/:id/har",
+      this.handleGetScenarioRunnerHAR
     );
   }
 
@@ -151,7 +149,7 @@ export class ControlServer {
   /**
    * This handler lists all request logs.
    */
-  private handleGetRequestLogs = async (_req: Request, res: Response) => {
+  private handleGetLoggingHAR = async (_req: Request, res: Response) => {
     const har = this.requestLogManager.getHAR();
     res.json(har);
   };
@@ -338,10 +336,7 @@ export class ControlServer {
   /**
    * This handler lists all request logs for a specific scenario runner.
    */
-  private handleGetScenarioRunnerRequestLogs = async (
-    req: Request,
-    res: Response
-  ) => {
+  private handleGetScenarioRunnerHAR = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const har = this.requestLogManager.getHARForScenarioRunner(id);
     res.json(har);

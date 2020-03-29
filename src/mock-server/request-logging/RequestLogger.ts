@@ -2,107 +2,19 @@ import { clone } from "../utils/clone";
 import { isPassed } from "../value-matchers/MatchFn";
 import { RequestValue, ResponseValue } from "../Values";
 import {
-  ExpectationRunnerRequestLog,
-  RequestExpectationLogger
-} from "./RequestExpectationLogger";
-import {
-  RequestScenarioLogger,
-  ScenarioRunnerRequestLog
-} from "./RequestScenarioLogger";
-
-/*
- * TYPES
- */
-
-export interface LogEntry {
-  _expectationRunners: ExpectationRunnerRequestLog[];
-  _id: number;
-  _matchedExpectationRunners: ExpectationRunnerRequestLog[];
-  _matchedScenarioRunners: ScenarioRunnerRequestLog[];
-  _requestValue: RequestValue;
-  _responseValue?: ResponseValue;
-  _scenarioRunners: ScenarioRunnerRequestLog[];
-  _url: string;
-  cache: HARCache;
-  request: HARRequest;
-  response: HARResponse;
-  /** Date and time stamp of the request start */
-  startedDateTime: string;
-  /** Total elapsed time of the request in milliseconds */
-  time: number;
-  timings: HARTimings;
-}
-
-export interface HARCache {}
-
-export interface HARTimings {
-  receive: number;
-  send: number;
-  wait: number;
-}
-
-export interface HARRequest {
-  bodySize: number;
-  cookies: HARCookie[];
-  headers: HARHeader[];
-  headersSize: number;
-  httpVersion: string;
-  method: string;
-  postData?: HARRequestPostData;
-  queryString: HARQuery[];
-  url: string;
-}
-
-export interface HARCookie {
-  expires: null | string;
-  httpOnly: boolean;
-  name: string;
-  path?: string;
-  domain?: string;
-  secure: boolean;
-  value: string;
-}
-
-export interface HARRequestPostData {
-  mimeType: string;
-  params?: HARRequestPostDataParam[];
-  text?: string;
-}
-
-export interface HARRequestPostDataParam {
-  name: string;
-  value?: string;
-  fileName?: string;
-  contentType?: string;
-}
-
-export interface HARResponse {
-  bodySize: number;
-  content: HARResponseContent;
-  cookies: HARCookie[];
-  headers: HARHeader[];
-  headersSize: number;
-  httpVersion: string;
-  redirectURL: string;
-  status: number;
-  statusText: string;
-}
-
-export interface HARResponseContent {
-  size: number;
-  mimeType: string;
-  text: string;
-}
-
-export interface HARHeader {
-  name: string;
-  value: string;
-}
-
-export interface HARQuery {
-  name: string;
-  value: string;
-}
+  HARCookie,
+  HARHeader,
+  HARLogEntry,
+  HARQuery,
+  HARRequest,
+  HARRequestPostData,
+  HARRequestPostDataParam,
+  HARResponse,
+  HARResponseContent,
+  HARTimings
+} from "./HAR";
+import { RequestExpectationLogger } from "./RequestExpectationLogger";
+import { RequestScenarioLogger } from "./RequestScenarioLogger";
 
 /*
  * LOGGER
@@ -142,7 +54,7 @@ export class RequestLogger {
       new Date(this.startedDateTime).getTime();
   }
 
-  getJSON(): LogEntry {
+  getJSON(): HARLogEntry {
     const expectationRunners = this.expectationLoggers.map(e => e.getJSON());
     const matchedExpectationRunners = expectationRunners.filter(e =>
       isPassed(e.matchResult)
@@ -152,6 +64,8 @@ export class RequestLogger {
     const matchedScenarioRunners = scenarioRunners.filter(s =>
       s.expectations.some(e => isPassed(e.matchResult))
     );
+
+    const timings: HARTimings = { receive: 1, send: this.time, wait: 1 };
 
     return {
       _id: this.id,
@@ -163,11 +77,11 @@ export class RequestLogger {
       _responseValue: this.responseValue,
       _url: this.requestValue.url,
       cache: {},
-      timings: { receive: 0, send: 0, wait: 0 },
+      timings,
       request: requestValueToHARRequest(this.requestValue),
       response: responseValueToHARResponse(this.responseValue!),
       startedDateTime: this.startedDateTime,
-      time: this.time
+      time: timings.receive + timings.send + timings.wait
     };
   }
 }

@@ -80,14 +80,19 @@ export const ScenarioRunnersPage: React.FC = () => {
                     <TableBodyCell>{runner.scenarioId}</TableBodyCell>
                     <TableBodyCell>{runner.status}</TableBodyCell>
                     <TableBodyCell>
-                      {new Date(runner.startedDateTime!).getHours()}:
-                      {new Date(runner.startedDateTime!).getMinutes()}
+                      {String(
+                        new Date(runner.startedDateTime!).getHours()
+                      ).padStart(2, "0")}
+                      :
+                      {String(
+                        new Date(runner.startedDateTime!).getMinutes()
+                      ).padStart(2, "0")}
                     </TableBodyCell>
                     <TableBodyCell style={{ textAlign: "right" }}>
                       <button onClick={() => stopRunner(runner)}>Stop</button>
                       <button onClick={() => resetRunner(runner)}>Reset</button>
                       <form
-                        action={`/api/scenario-runners/${runner.id}/request-logs`}
+                        action={`/api/scenario-runners/${runner.id}/har`}
                         method="GET"
                         target="_blank"
                       >
