@@ -2,8 +2,8 @@ import "jest";
 
 import { ServerMockr } from "..";
 import {
-  ApiScenarioRunnersRequestLogsSuccessResponse,
-  ApiScenariosStartSuccessResponse
+  ApiCreateScenarioRunnerSuccessResponse,
+  ApiGetScenarioRunnerHARSuccessResponse
 } from "../control-server/ControlServer";
 import { controlUrl, get, post, setup } from "./utils";
 
@@ -21,7 +21,7 @@ describe("controlServer", () => {
   });
 
   /*
-   * GET /api/scenarios/:id/start
+   * POST /api/scenarios/:id/scenario-runners
    */
 
   describe("logs", () => {
@@ -31,17 +31,19 @@ describe("controlServer", () => {
         .when("/test")
         .respond("ok");
 
-      const controlRes = await post(controlUrl("/api/scenarios/id/start"));
-      const controlJson: ApiScenariosStartSuccessResponse = await controlRes.json();
-
-      await get("/test");
-
-      const logRes = await get(
-        controlUrl(`/api/scenario-runners/${controlJson.runnerId}/har`)
+      const createRes = await post(
+        controlUrl("/api/scenarios/id/scenario-runners")
       );
-      const logJson: ApiScenarioRunnersRequestLogsSuccessResponse = await logRes.json();
+      const runner: ApiCreateScenarioRunnerSuccessResponse = await createRes.json();
 
-      expect(logJson).toMatchObject({
+      await post("/test", { a: "b" });
+
+      const harRes = await get(
+        controlUrl(`/api/scenario-runners/${runner.id}/har`)
+      );
+      const har: ApiGetScenarioRunnerHARSuccessResponse = await harRes.json();
+
+      expect(har).toMatchObject({
         log: {
           entries: [
             {
@@ -52,7 +54,19 @@ describe("controlServer", () => {
               _responseValue: {
                 body: "ok"
               },
-              _url: "/test"
+              _url: "/test",
+              request: {
+                postData: {
+                  mimeType: "application/json",
+                  text: '{"a":"b"}'
+                }
+              },
+              response: {
+                content: {
+                  mimeType: "text/plain",
+                  text: "ok"
+                }
+              }
             }
           ]
         }
@@ -65,17 +79,19 @@ describe("controlServer", () => {
         .when("/test")
         .respond("ok");
 
-      const controlRes = await post(controlUrl("/api/scenarios/id/start"));
-      const controlJson: ApiScenariosStartSuccessResponse = await controlRes.json();
+      const createRes = await post(
+        controlUrl("/api/scenarios/id/scenario-runners")
+      );
+      const runner: ApiCreateScenarioRunnerSuccessResponse = await createRes.json();
 
       await get("/test-2");
 
-      const logRes = await get(
-        controlUrl(`/api/scenario-runners/${controlJson.runnerId}/har`)
+      const harRes = await get(
+        controlUrl(`/api/scenario-runners/${runner.id}/har`)
       );
-      const logJson: ApiScenarioRunnersRequestLogsSuccessResponse = await logRes.json();
+      const har: ApiGetScenarioRunnerHARSuccessResponse = await harRes.json();
 
-      expect(logJson).toMatchObject({
+      expect(har).toMatchObject({
         log: {
           entries: [
             {

@@ -662,16 +662,16 @@ Click on the start button to start a scenario.
 Using the REST API:
 
 ```
-POST http://localhost:3001/api/scenarios/{scenarioID}/start
+POST http://localhost:3001/api/scenarios/{scenarioID}/scenario-runners
 ```
 
 Using the REST API with default state:
 
 ```
-POST http://localhost:3001/api/scenarios/{scenarioID}/start?state[todos]=saved
+POST http://localhost:3001/api/scenarios/{scenarioID}/scenario-runners?state[todos]=saved
 ```
 
-Using the JavaScript API:
+Using the JS API:
 
 ```js
 mockr
@@ -679,10 +679,10 @@ mockr
   .when(request().get("/todos"))
   .respond([]);
 
-mockr.startScenarioRunner("todo-scenario");
+mockr.scenarioRunner("todo-scenario");
 ```
 
-Using the JavaScript API with default state:
+Using the JS API with default state:
 
 ```js
 mockr
@@ -690,7 +690,7 @@ mockr
   .when(request().get("/todos"), state("todos", "saved"))
   .respond([{ id: 1 }]);
 
-mockr.startScenarioRunner("todo-scenario", { todos: "saved" });
+mockr.scenarioRunner("todo-scenario", { state: { todos: "saved" } });
 ```
 
 #### Configurable scenarios
@@ -731,7 +731,7 @@ mockr
 The client can then be bootstrapped by navigating the client to the following address:
 
 ```
-GET http://localhost:3001/api/scenarios/{scenarioID}/start-and-bootstrap?config[locale]=nl-nl
+GET http://localhost:3001/api/scenarios/{scenarioID}/scenario-runners/create-and-bootstrap?config[locale]=nl-nl
 ```
 
 ### Matchers

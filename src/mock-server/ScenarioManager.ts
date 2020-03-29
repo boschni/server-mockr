@@ -6,7 +6,7 @@ import { Scenario } from "./Scenario";
 import {
   ScenarioRequestContext,
   ScenarioRunner,
-  StartScenarioParams
+  StartScenarioRunnerParams
 } from "./ScenarioRunner";
 import { RequestValue, ResponseValue } from "./Values";
 
@@ -49,11 +49,11 @@ export class ScenarioManager {
     this.scenarios.push(scenario);
   }
 
-  startScenario(
-    id: string,
-    params?: StartScenarioParams
+  createScenarioRunner(
+    scenarioId: string,
+    params?: StartScenarioRunnerParams
   ): ScenarioRunner | undefined {
-    const scenario = this.getScenario(id);
+    const scenario = this.getScenario(scenarioId);
 
     if (!scenario) {
       return;

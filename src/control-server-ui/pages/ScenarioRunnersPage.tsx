@@ -92,6 +92,13 @@ export const ScenarioRunnersPage: React.FC = () => {
                       <button onClick={() => stopRunner(runner)}>Stop</button>
                       <button onClick={() => resetRunner(runner)}>Reset</button>
                       <form
+                        action={`/api/scenario-runners/${runner.id}/bootstrap`}
+                        method="GET"
+                        target="_blank"
+                      >
+                        <button type="submit">Bootstrap</button>
+                      </form>
+                      <form
                         action={`/api/scenario-runners/${runner.id}/har`}
                         method="GET"
                         target="_blank"

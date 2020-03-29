@@ -37,7 +37,7 @@ export class Response {
 
   constructor(body?: unknown) {
     if (typeof body === "string") {
-      this.body(body);
+      this.text(body);
     } else if (typeof body !== "undefined") {
       this.json(body);
     }

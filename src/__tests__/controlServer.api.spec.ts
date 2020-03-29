@@ -17,19 +17,21 @@ describe("controlServer", () => {
   });
 
   /*
-   * GET /api/scenarios/:id/start
+   * POST /api/scenarios/:id/scenario-runners
    */
 
-  describe("GET /api/scenarios/:id/start", () => {
+  describe("POST /api/scenarios/:id/scenario-runners", () => {
     test("should start a scenario", async () => {
       mockr
         .scenario("id")
         .when("/test")
         .respond("ok");
 
-      const controlRes = await post(controlUrl("/api/scenarios/id/start"));
-      expect(await controlRes.json()).toEqual({
-        runnerId: 1,
+      const controlRes = await post(
+        controlUrl("/api/scenarios/id/scenario-runners")
+      );
+      expect(await controlRes.json()).toMatchObject({
+        id: 1,
         scenarioId: "id",
         status: "STARTED"
       });
@@ -45,7 +47,9 @@ describe("controlServer", () => {
         .when("/test", config("language", "nl"))
         .respond("ok");
 
-      await post(controlUrl("/api/scenarios/id/start?config[language]=nl"));
+      await post(
+        controlUrl("/api/scenarios/id/scenario-runners?config[language]=nl")
+      );
 
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
@@ -58,7 +62,9 @@ describe("controlServer", () => {
         .when("/test", state("language", "nl"))
         .respond("ok");
 
-      await post(controlUrl("/api/scenarios/id/start?state[language]=nl"));
+      await post(
+        controlUrl("/api/scenarios/id/scenario-runners?state[language]=nl")
+      );
 
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
@@ -66,10 +72,10 @@ describe("controlServer", () => {
   });
 
   /*
-   * GET /api/scenarios/:id/start-and-bootstrap
+   * GET /api/scenarios/:id/scenario-runners/create-and-bootstrap
    */
 
-  describe("GET /api/scenarios/:id/start-and-bootstrap", () => {
+  describe("GET /api/scenarios/:id/scenario-runners/create-and-bootstrap", () => {
     test("should start a scenario", async () => {
       mockr
         .scenario("id")
@@ -78,8 +84,9 @@ describe("controlServer", () => {
         .respond("redirected");
 
       const controlRes = await get(
-        controlUrl("/api/scenarios/id/start-and-bootstrap")
+        controlUrl("/api/scenarios/id/scenario-runners/create-and-bootstrap")
       );
+
       expect(await controlRes.text()).toEqual("redirected");
     });
 
@@ -91,7 +98,9 @@ describe("controlServer", () => {
         .respond("ok");
 
       await get(
-        controlUrl("/api/scenarios/id/start-and-bootstrap?config[language]=nl")
+        controlUrl(
+          "/api/scenarios/id/scenario-runners/create-and-bootstrap?config[language]=nl"
+        )
       );
 
       const res = await get("/test");
@@ -106,7 +115,9 @@ describe("controlServer", () => {
         .respond("ok");
 
       await get(
-        controlUrl("/api/scenarios/id/start-and-bootstrap?state[language]=nl")
+        controlUrl(
+          "/api/scenarios/id/scenario-runners/create-and-bootstrap?state[language]=nl"
+        )
       );
 
       const res = await get("/test");
@@ -115,18 +126,18 @@ describe("controlServer", () => {
   });
 
   /*
-   * GET /api/scenarios/:id/stop
+   * GET /api/scenarios/:id/scenario-runners/stop
    */
 
-  describe("GET /api/scenarios/:id/stop", () => {
+  describe("GET /api/scenarios/:id/scenario-runners/stop", () => {
     test("should stop a scenario", async () => {
       mockr
         .scenario("id")
         .when("/test")
         .respond("ok");
 
-      await post(controlUrl("/api/scenarios/id/start"));
-      await post(controlUrl("/api/scenarios/id/stop"));
+      await post(controlUrl("/api/scenarios/id/scenario-runners"));
+      await post(controlUrl("/api/scenarios/id/scenario-runners/stop"));
       const mockRes = await get("/test");
       expect(mockRes.status).toEqual(404);
     });

@@ -36,12 +36,16 @@ export const ScenarioPage: React.FC = () => {
   );
 
   async function startScenario(scenario: ApiScenario) {
-    await fetch(`/api/scenarios/${scenario.id}/start`, { method: "POST" });
+    await fetch(`/api/scenarios/${scenario.id}/scenario-runners`, {
+      method: "POST"
+    });
     scenariosFetch.refetch();
   }
 
   async function stopScenario(scenario: ApiScenario) {
-    await fetch(`/api/scenarios/${scenario.id}/stop`, { method: "POST" });
+    await fetch(`/api/scenarios/${scenario.id}/scenario-runners/stop`, {
+      method: "POST"
+    });
     scenariosFetch.refetch();
   }
 
@@ -66,7 +70,9 @@ export const ScenarioPage: React.FC = () => {
     }
 
     await fetch(
-      `/api/scenarios/${scenario.id}/start?${searchParams.toString()}`,
+      `/api/scenarios/${
+        scenario.id
+      }/scenario-runners?${searchParams.toString()}`,
       { method: "POST" }
     );
 
@@ -126,7 +132,7 @@ export const ScenarioPage: React.FC = () => {
                         Stop
                       </button>
                       <form
-                        action={`/api/scenarios/${scenario.id}/start-and-bootstrap`}
+                        action={`/api/scenarios/${scenario.id}/scenario-runners/create-and-bootstrap`}
                         method="GET"
                         target="_blank"
                         onSubmit={() => {
@@ -157,7 +163,7 @@ export const ScenarioPage: React.FC = () => {
                           <h2>Config</h2>
                           <form
                             className="form"
-                            action={`/api/scenarios/${scenario.id}/start-and-bootstrap`}
+                            action={`/api/scenarios/${scenario.id}/scenario-runners/create-and-bootstrap`}
                             method="GET"
                             target="_blank"
                             onSubmit={() => {

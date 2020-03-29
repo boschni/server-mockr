@@ -27,7 +27,7 @@ export interface ScenarioRequestContext {
   response: ResponseValue;
 }
 
-export interface StartScenarioParams {
+export interface StartScenarioRunnerParams {
   config?: ConfigValue;
   state?: StateValue;
 }
@@ -52,7 +52,7 @@ export class ScenarioRunner {
     this.id = ++ScenarioRunner.id;
   }
 
-  start(params: StartScenarioParams = {}) {
+  start(params: StartScenarioRunnerParams = {}) {
     this.active = true;
     this.startedDateTime = new Date().toISOString();
 

@@ -47,13 +47,10 @@ export interface ApiScenarioRunner {
   status: ApiScenarioRunnerStatus;
 }
 
-export interface ApiScenarioRunnersRequestLogsSuccessResponse extends HAR {}
+export interface ApiGetScenarioRunnerHARSuccessResponse extends HAR {}
 
-export interface ApiScenariosStartSuccessResponse {
-  runnerId: number;
-  scenarioId: string;
-  status: ApiScenarioRunnerStatus;
-}
+export interface ApiCreateScenarioRunnerSuccessResponse
+  extends ApiScenarioRunner {}
 
 /*
  * CONTROL SERVER
@@ -83,19 +80,25 @@ export class ControlServer {
     // Scenarios
     this.app.get("/api/scenarios", this.handleGetScenarios);
     this.app.get("/api/scenarios/:id", this.handleGetScenario);
-    this.app.post("/api/scenarios/:id/start", this.handlePostStartScenario);
-    this.app.post("/api/scenarios/:id/stop", this.handlePostStopScenario);
-    this.app.get(
-      "/api/scenarios/:id/bootstrap",
-      this.handleGetBootstrapScenario
+    this.app.post(
+      "/api/scenarios/:id/scenario-runners",
+      this.handlePostScenarioScenarioRunners
     );
     this.app.get(
-      "/api/scenarios/:id/start-and-bootstrap",
-      this.handleGetStartAndBootstrapScenario
+      "/api/scenarios/:id/scenario-runners/create-and-bootstrap",
+      this.handleGetScenarioScenarioRunnersCreateAndBootstrap
+    );
+    this.app.post(
+      "/api/scenarios/:id/scenario-runners/stop",
+      this.handlePostStopScenarioScenarioRunners
     );
 
     // Scenario runners
     this.app.get("/api/scenario-runners", this.handleGetScenarioRunners);
+    this.app.get(
+      "/api/scenario-runners/:id/bootstrap",
+      this.handleGetBootstrapScenarioRunner
+    );
     this.app.post(
       "/api/scenario-runners/:id/stop",
       this.handlePostStopScenarioRunner
@@ -183,37 +186,46 @@ export class ControlServer {
   };
 
   /**
-   * This handler starts a specific scenario.
+   * This handler creates and starts a scenario runner.
    */
-  private handlePostStartScenario = async (req: Request, res: Response) => {
-    const { id } = req.params;
-
+  private handlePostScenarioScenarioRunners = async (
+    req: Request,
+    res: Response
+  ) => {
     const request = incomingMessageToRequestValue(req);
-    const config = this.queryParamToObject<ConfigValue>(
-      "config",
-      request.query
-    );
-    const state = this.queryParamToObject<StateValue>("state", request.query);
-    const runner = this.scenarioManager.startScenario(id, { config, state });
+
+    const scenarioId = req.params.id;
+    let config: any;
+    let state: any;
+
+    if (req.headers["content-type"] === "application/json") {
+      config = req.body.config;
+      state = req.body.state;
+    } else {
+      config = this.queryParamToObject<ConfigValue>("config", request.query);
+      state = this.queryParamToObject<StateValue>("state", request.query);
+    }
+
+    const runner = this.scenarioManager.createScenarioRunner(scenarioId, {
+      config,
+      state
+    });
 
     if (!runner) {
       res.status(404).send("server-mockr: Scenario not found");
       return;
     }
 
-    const body: ApiScenariosStartSuccessResponse = {
-      scenarioId: id,
-      runnerId: runner.getId(),
-      status: "STARTED"
-    };
-
-    res.send(body);
+    res.send(this.scenarioRunnerToApiScenarioRunner(runner));
   };
 
   /**
    * This handler stops all scenario runner.
    */
-  private handlePostStopScenario = async (req: Request, res: Response) => {
+  private handlePostStopScenarioScenarioRunners = async (
+    req: Request,
+    res: Response
+  ) => {
     const id = req.params.id;
     const scenario = this.scenarioManager.getScenario(id);
 
@@ -230,7 +242,10 @@ export class ControlServer {
   /**
    * This handler bootstraps a client for a specific scenario.
    */
-  private handleGetBootstrapScenario = async (req: Request, res: Response) => {
+  private handleGetBootstrapScenarioRunner = async (
+    req: Request,
+    res: Response
+  ) => {
     const id = Number(req.params.id);
 
     const runner = this.scenarioManager.getScenarioRunner(id);
@@ -253,11 +268,11 @@ export class ControlServer {
   /**
    * This handler starts a scenario and bootstraps a client for a specific scenario.
    */
-  private handleGetStartAndBootstrapScenario = async (
+  private handleGetScenarioScenarioRunnersCreateAndBootstrap = async (
     req: Request,
     res: Response
   ) => {
-    const { id } = req.params;
+    const scenarioId = req.params.id;
     const request = incomingMessageToRequestValue(req);
     const config = this.queryParamToObject<ConfigValue>(
       "config",
@@ -266,7 +281,7 @@ export class ControlServer {
     const state = this.queryParamToObject<StateValue>("state", request.query);
     const response = createResponseValue();
 
-    const runner = this.scenarioManager.startScenario(id, {
+    const runner = this.scenarioManager.createScenarioRunner(scenarioId, {
       config,
       state
     });

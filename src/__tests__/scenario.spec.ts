@@ -26,7 +26,7 @@ describe("scenario()", () => {
         .scenario("id")
         .when("/test")
         .respond("ok");
-      mockr.startScenarioRunner("id");
+      mockr.scenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
     });
@@ -45,7 +45,7 @@ describe("scenario()", () => {
         .scenario("id")
         .when("/test")
         .respond("ok");
-      const id = mockr.startScenarioRunner("id");
+      const id = mockr.scenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
       mockr.stopScenarioRunner(id);
@@ -57,7 +57,7 @@ describe("scenario()", () => {
       const scenario = mockr.scenario("id");
       scenario.when("/test").respond("ok");
       scenario.when("/test-2").respond("ok");
-      mockr.startScenarioRunner("id");
+      mockr.scenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
       const res2 = await get("/test-2");
@@ -68,7 +68,7 @@ describe("scenario()", () => {
       mockr.scenario("id").onStart(({ scenario }) => {
         scenario.when("/test").respond("ok");
       });
-      mockr.startScenarioRunner("id");
+      mockr.scenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
     });
@@ -83,11 +83,11 @@ describe("scenario()", () => {
           .next();
         scenario.when("/test", state("count", 2)).respond("ok");
       });
-      const id = mockr.startScenarioRunner("id");
+      const id = mockr.scenarioRunner("id");
       const res = await get("/test");
       expect(res.status).toEqual(404);
       mockr.stopScenarioRunner(id);
-      mockr.startScenarioRunner("id");
+      mockr.scenarioRunner("id");
       const res2 = await get("/test");
       expect(res2.status).toEqual(404);
     });
@@ -106,10 +106,10 @@ describe("scenario()", () => {
         .when("/test-2")
         .respond("ok2");
 
-      mockr.startScenarioRunner("id1");
+      mockr.scenarioRunner("id1");
       const res = await get("/test-1");
       expect(await res.text()).toEqual("ok1");
-      mockr.startScenarioRunner("id2");
+      mockr.scenarioRunner("id2");
       const res2 = await get("/test-1");
       expect(res2.status).toEqual(404);
       const res3 = await get("/test-2");
@@ -149,13 +149,13 @@ describe("scenario()", () => {
             .respond({ amount: 100 });
         });
 
-      const id1 = mockr.startScenarioRunner("no-money", {
+      const id1 = mockr.scenarioRunner("no-money", {
         config: { userId: "1" }
       });
-      const id2 = mockr.startScenarioRunner("no-money", {
+      const id2 = mockr.scenarioRunner("no-money", {
         config: { userId: "2" }
       });
-      mockr.startScenarioRunner("has-money", { config: { userId: "3" } });
+      mockr.scenarioRunner("has-money", { config: { userId: "3" } });
 
       const res = await get("/users/1/wallet");
       expect(await res.json()).toEqual({ amount: 0 });
@@ -198,7 +198,7 @@ describe("scenario()", () => {
         .state("language", { type: "string", default: "nl" })
         .when("/test", state("language", "nl"))
         .respond("ok");
-      mockr.startScenarioRunner("id");
+      mockr.scenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
     });
@@ -209,7 +209,7 @@ describe("scenario()", () => {
         .state("language", { type: "string", default: "nl" })
         .when("/test", state("language", "en"))
         .respond("ok");
-      mockr.startScenarioRunner("id");
+      mockr.scenarioRunner("id");
       const res = await get("/test");
       expect(res.status).toEqual(404);
     });
@@ -220,7 +220,7 @@ describe("scenario()", () => {
         .state("language", { type: "string", default: "nl" })
         .when("/test", state("language", "en"))
         .respond("ok");
-      mockr.startScenarioRunner("id", { state: { language: "en" } });
+      mockr.scenarioRunner("id", { state: { language: "en" } });
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
     });
@@ -230,7 +230,7 @@ describe("scenario()", () => {
         .scenario("id")
         .when("/test", state("language", "nl"))
         .respond("ok");
-      mockr.startScenarioRunner("id", { state: { language: "nl" } });
+      mockr.scenarioRunner("id", { state: { language: "nl" } });
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
     });
@@ -241,11 +241,13 @@ describe("scenario()", () => {
         .state("language", { type: "string", default: "en" })
         .when("/test", state("language", "nl"))
         .respond("ok");
-      const id = mockr.startScenarioRunner("id", { state: { language: "nl" } });
+      const id = mockr.scenarioRunner("id", {
+        state: { language: "nl" }
+      });
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
       mockr.stopScenarioRunner(id);
-      mockr.startScenarioRunner("id");
+      mockr.scenarioRunner("id");
       const res2 = await get("/test");
       expect(res2.status).toEqual(404);
     });

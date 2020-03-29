@@ -7,7 +7,7 @@ import { HAR } from "./request-logging/HAR";
 import { RequestLogManager } from "./request-logging/RequestLogManager";
 import { Scenario } from "./Scenario";
 import { ScenarioManager } from "./ScenarioManager";
-import { StartScenarioParams } from "./ScenarioRunner";
+import { StartScenarioRunnerParams } from "./ScenarioRunner";
 import { ServerManager } from "./ServerManager";
 
 /*
@@ -73,11 +73,14 @@ export class ServerMockr {
     this.scenarioManager.addScenario(scenario);
   }
 
-  startScenarioRunner(
+  scenarioRunner(
     scenarioId: string,
-    params?: StartScenarioParams
+    params?: StartScenarioRunnerParams
   ): number | undefined {
-    const runner = this.scenarioManager.startScenario(scenarioId, params);
+    const runner = this.scenarioManager.createScenarioRunner(
+      scenarioId,
+      params
+    );
 
     if (runner) {
       return runner.getId();
