@@ -64,6 +64,7 @@ export const ScenarioRunnersPage: React.FC = () => {
             <TableHeadCell style={{ width: "100px" }}>ID</TableHeadCell>
             <TableHeadCell>Scenario ID</TableHeadCell>
             <TableHeadCell>Status</TableHeadCell>
+            <TableHeadCell style={{ width: "200px" }}>Started</TableHeadCell>
             <TableHeadCell style={{ width: "200px", textAlign: "right" }}>
               Actions
             </TableHeadCell>
@@ -78,6 +79,10 @@ export const ScenarioRunnersPage: React.FC = () => {
                     <TableBodyCell>{runner.id}</TableBodyCell>
                     <TableBodyCell>{runner.scenarioId}</TableBodyCell>
                     <TableBodyCell>{runner.status}</TableBodyCell>
+                    <TableBodyCell>
+                      {new Date(runner.startedDateTime!).getHours()}:
+                      {new Date(runner.startedDateTime!).getMinutes()}
+                    </TableBodyCell>
                     <TableBodyCell style={{ textAlign: "right" }}>
                       <button onClick={() => stopRunner(runner)}>Stop</button>
                       <button onClick={() => resetRunner(runner)}>Reset</button>

@@ -5,7 +5,10 @@ import path from "path";
 
 import { Config } from "../mock-server/Config";
 import { Logger } from "../mock-server/Logger";
-import { RequestLogManager } from "../mock-server/request-logging/RequestLogManager";
+import {
+  HAR,
+  RequestLogManager
+} from "../mock-server/request-logging/RequestLogManager";
 import { Scenario } from "../mock-server/Scenario";
 import { ScenarioManager } from "../mock-server/ScenarioManager";
 import { ScenarioRunner } from "../mock-server/ScenarioRunner";
@@ -26,6 +29,8 @@ import {
  * TYPES
  */
 
+type ApiScenarioRunnerStatus = "STARTED" | "STOPPED";
+
 export interface ApiScenario {
   configDefinitions: ConfigDefinition[];
   description: string;
@@ -39,8 +44,17 @@ export interface ApiScenarioRunner {
   config: ConfigValue;
   id: number;
   scenarioId: string;
+  startedDateTime?: string;
   state: StateValue;
-  status: string;
+  status: ApiScenarioRunnerStatus;
+}
+
+export interface ApiScenarioRunnersRequestLogsSuccessResponse extends HAR {}
+
+export interface ApiScenariosStartSuccessResponse {
+  runnerId: number;
+  scenarioId: string;
+  status: ApiScenarioRunnerStatus;
 }
 
 /*
@@ -189,7 +203,13 @@ export class ControlServer {
       return;
     }
 
-    res.send({ scenarioId: id, runnerId: runner.getId(), state: "STARTED" });
+    const body: ApiScenariosStartSuccessResponse = {
+      scenarioId: id,
+      runnerId: runner.getId(),
+      status: "STARTED"
+    };
+
+    res.send(body);
   };
 
   /**
@@ -363,9 +383,10 @@ export class ControlServer {
     runner: ScenarioRunner
   ): ApiScenarioRunner {
     return {
+      config: runner.getConfig(),
       id: runner.getId(),
       scenarioId: runner.getScenarioId(),
-      config: runner.getConfig(),
+      startedDateTime: runner.getStartedDateTime(),
       state: runner.getState(),
       status: runner.isActive() ? "STARTED" : "STOPPED"
     };

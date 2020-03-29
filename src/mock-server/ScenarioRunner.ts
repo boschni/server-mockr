@@ -42,7 +42,7 @@ export class ScenarioRunner {
   private id: number;
   private active = false;
   private expectationManager?: ExpectationManager;
-  private startedDateTime: string;
+  private startedDateTime?: string;
 
   constructor(
     private config: Config,
@@ -50,11 +50,11 @@ export class ScenarioRunner {
     private scenario: Scenario
   ) {
     this.id = ++ScenarioRunner.id;
-    this.startedDateTime = new Date().toISOString();
   }
 
   start(params: StartScenarioParams = {}) {
     this.active = true;
+    this.startedDateTime = new Date().toISOString();
 
     const scenario = this.scenario;
 
@@ -169,7 +169,7 @@ export class ScenarioRunner {
     return this.expectationManager?.getState() ?? {};
   }
 
-  getStartedDateTime(): string {
+  getStartedDateTime(): string | undefined {
     return this.startedDateTime;
   }
 
