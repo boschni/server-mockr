@@ -17,6 +17,7 @@ Mock HTTP APIs for rapid development and reliable testing.
     - [Request query string](#request-query-string)
     - [Request headers](#request-headers)
     - [Request cookies](#request-cookies)
+    - [Request files](#request-files)
     - [Request url](#request-url)
   - [Specifying responses](#specifying-responses)
     - [Response status](#response-status)
@@ -326,6 +327,24 @@ mockr
     request()
       .get("/resources")
       .cookie("sessionId", "id")
+  )
+  .respond("ok");
+```
+
+#### Request files
+
+Files can be specified by using the `file` method.
+
+```js
+mockr
+  .when(
+    request()
+      .get("/resources")
+      .file("image", {
+        fileName: "image.png",
+        mimeType: "image/png",
+        size: 144
+      })
   )
   .respond("ok");
 ```

@@ -29,9 +29,9 @@ describe("controlServer", () => {
 
       const controlRes = await post(controlUrl("/api/scenarios/id/start"));
       expect(await controlRes.json()).toEqual({
-        scenarioId: "id",
         runnerId: 1,
-        state: "STARTED"
+        scenarioId: "id",
+        status: "STARTED"
       });
 
       const res = await get("/test");

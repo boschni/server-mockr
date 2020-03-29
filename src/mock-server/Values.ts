@@ -58,7 +58,7 @@ export interface CookiesValue {
  */
 
 export interface QueryValue {
-  [name: string]: string | string[];
+  [name: string]: string | string[] | undefined;
 }
 
 /*
@@ -70,12 +70,31 @@ export interface ParamsValue {
 }
 
 /*
+ * FILES VALUE
+ */
+
+export interface FilesValue {
+  [name: string]: FileValue | FileValue[] | undefined;
+}
+
+/*
+ * FILE VALUE
+ */
+
+export interface FileValue {
+  fileName: string;
+  mimeType: string;
+  size: number;
+}
+
+/*
  * REQUEST VALUE
  */
 
 export interface RequestValue {
   body: RequestBodyValue;
   cookies: CookiesValue;
+  files: FilesValue;
   headers: HeadersValue;
   method: MethodValue;
   params: ParamsValue;

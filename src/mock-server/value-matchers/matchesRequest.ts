@@ -21,6 +21,7 @@ export interface MatchRequestMatchResult extends ExtendedMatchResult {
 export interface RequestMatchDef {
   body: MatchFn[];
   cookies: MatchFn[];
+  files: MatchFn[];
   headers: MatchFn[];
   method: MatchFn[];
   params: MatchFn[];
@@ -47,7 +48,8 @@ const validationOrder: Array<keyof RequestMatchDef> = [
   "params",
   "cookies",
   "headers",
-  "body"
+  "body",
+  "files"
 ];
 
 /*

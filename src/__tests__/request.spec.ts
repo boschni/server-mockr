@@ -1,3 +1,5 @@
+import FormData from "form-data";
+import { createReadStream } from "fs";
 import "jest";
 
 import { anyOf, matchesObject, not, request, ServerMockr } from "..";
@@ -236,6 +238,15 @@ describe("request()", () => {
       const res = await post("/test", { b: "b" });
       expect(res.status).toEqual(404);
     });
+
+    test("should match on xml body", async () => {
+      const xml = '<?xml version="1.0" encoding="UTF-8"?><doc>Test</doc>';
+      mockr.when(request().body(xml)).respond("ok");
+      const res = await post("/test", xml, {
+        "Content-Type": 'application/xml; charset="utf-8"'
+      });
+      expect(await res.text()).toEqual("ok");
+    });
   });
 
   /*
@@ -390,6 +401,93 @@ describe("request()", () => {
       const res = await post("/test", undefined, {
         Cookie: "a=b; b=d"
       });
+      expect(res.status).toEqual(404);
+    });
+  });
+
+  /*
+   * FILES
+   */
+
+  describe("file()", () => {
+    test("should match on uploaded file", async () => {
+      const stream = createReadStream("./src/__tests__/data/red.png");
+      const form = new FormData();
+
+      form.append("test", stream, {
+        contentType: "image/png",
+        filename: "red.png"
+      });
+
+      mockr
+        .when(
+          request().file("test", {
+            fileName: "red.png",
+            mimeType: "image/png",
+            size: 144
+          })
+        )
+        .respond("ok");
+
+      const res = await post("/test", form);
+      expect(await res.text()).toEqual("ok");
+    });
+
+    test("should match on multiple uploaded files", async () => {
+      const stream = createReadStream("./src/__tests__/data/red.png");
+      const form = new FormData();
+
+      form.append("test", stream, {
+        contentType: "image/png",
+        filename: "red.png"
+      });
+
+      form.append("test", stream, {
+        contentType: "image/png",
+        filename: "red.png"
+      });
+
+      mockr
+        .when(
+          request().file("test", [
+            {
+              fileName: "red.png",
+              mimeType: "image/png",
+              size: 144
+            },
+            {
+              fileName: "red.png",
+              mimeType: "image/png",
+              size: 144
+            }
+          ])
+        )
+        .respond("ok");
+
+      const res = await post("/test", form);
+      expect(await res.text()).toEqual("ok");
+    });
+
+    test("should not match on different uploaded file", async () => {
+      const stream = createReadStream("./src/__tests__/data/red.png");
+      const form = new FormData();
+
+      form.append("test", stream, {
+        contentType: "image/png",
+        filename: "red.png"
+      });
+
+      mockr
+        .when(
+          request().file("test", {
+            fileName: "differrent.png",
+            mimeType: "image/png",
+            size: 144
+          })
+        )
+        .respond("ok");
+
+      const res = await post("/test", form);
       expect(res.status).toEqual(404);
     });
   });

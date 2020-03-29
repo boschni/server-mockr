@@ -6,6 +6,8 @@ import {
   ConfigDefinition,
   ConfigValue,
   CookiesValue,
+  FilesValue,
+  FileValue,
   HeadersValue,
   MethodValue,
   OutgoingRequestValue,
@@ -26,10 +28,24 @@ export const incomingMessageToRequestValue = (
   const url = new URL(req.url!, "http://localhost/");
   const query = urlSearchParamsToQueryValue(url.searchParams);
   const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
+  const reqBody = (req as any).body;
+  const reqFiles = (req as any).files;
+  let files: FilesValue = {};
+
+  if (reqFiles) {
+    for (const file of reqFiles) {
+      files = appendValueToArrayValueMap<FileValue>(files, file.fieldname, {
+        fileName: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size
+      });
+    }
+  }
 
   const request: RequestValue = {
-    body: (req as any).body,
+    body: reqBody,
     cookies,
+    files,
     headers: req.headers,
     method: req.method as MethodValue,
     params: {},
@@ -48,6 +64,16 @@ export const createResponseValue = (): ResponseValue => {
   return response;
 };
 
+export const createNotFoundResponseValue = (): ResponseValue => {
+  return {
+    headers: {
+      "Content-Type": "text/plain"
+    },
+    status: 404,
+    body: "server-mockr: Not Found"
+  };
+};
+
 export const respondWithResponseValue = async (
   res: ServerResponse,
   response: ResponseValue
@@ -62,15 +88,6 @@ export const respondWithResponseValue = async (
     }
 
     res.end(response.body, resolve);
-  });
-};
-
-export const respondWithNotFound = async (
-  res: ServerResponse
-): Promise<void> => {
-  return new Promise(resolve => {
-    res.statusCode = 404;
-    res.end("server-mockr: Not Found", resolve);
   });
 };
 
@@ -202,16 +219,16 @@ export const incomingRequestValueToOutgoingRequestValue = (
   };
 };
 
-interface ArrayValueMap {
-  [name: string]: string | string[] | undefined;
+interface ArrayValueMap<T> {
+  [name: string]: T | T[] | undefined;
 }
 
-export const appendValueToArrayValueMap = (
-  obj: ArrayValueMap,
+export function appendValueToArrayValueMap<T>(
+  obj: ArrayValueMap<T>,
   name: string,
-  value: string | string[] | undefined
-): ArrayValueMap => {
-  const result: ArrayValueMap = { ...obj };
+  value: T | T[] | undefined
+): ArrayValueMap<T> {
+  const result: ArrayValueMap<T> = { ...obj };
 
   const currentValue = obj[name];
 
@@ -232,20 +249,20 @@ export const appendValueToArrayValueMap = (
   }
 
   return result;
-};
+}
 
-export const mergeArrayValueMaps = (
-  map1: ArrayValueMap,
-  map2: ArrayValueMap
-): ArrayValueMap => {
-  let result: ArrayValueMap = { ...map1 };
+export function mergeArrayValueMaps<T>(
+  map1: ArrayValueMap<T>,
+  map2: ArrayValueMap<T>
+): ArrayValueMap<T> {
+  let result: ArrayValueMap<T> = { ...map1 };
 
   for (const [name, value] of Object.entries(map2)) {
     result = appendValueToArrayValueMap(result, name, value);
   }
 
   return result;
-};
+}
 
 export const mergeOutgoingRequestValues = (
   req1: OutgoingRequestValue,

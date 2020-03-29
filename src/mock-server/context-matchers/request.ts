@@ -9,7 +9,7 @@ import {
   prop,
   RequestMatchDef
 } from "../value-matchers";
-import { ExpectationValue, JSONValue, MethodValue } from "../Values";
+import { ExpectationValue, FileValue, JSONValue, MethodValue } from "../Values";
 import { ContextMatcher } from "./ContextMatcher";
 
 /*
@@ -29,6 +29,7 @@ export function request(matcher?: MatchesPathInput | MatchFn): RequestMatcher {
 export class RequestMatcher implements ContextMatcher {
   private _bodyMatchers: MatchFn[] = [];
   private _cookiesMatchers: MatchFn[] = [];
+  private _filesMatchers: MatchFn[] = [];
   private _headersMatchers: MatchFn[] = [];
   private _methodMatchers: MatchFn[] = [];
   private _paramsMatchers: MatchFn[] = [];
@@ -132,6 +133,20 @@ export class RequestMatcher implements ContextMatcher {
     return this;
   }
 
+  file(
+    name: string,
+    value: Partial<FileValue> | Array<Partial<FileValue>>
+  ): RequestMatcher;
+  file(name: string, fn: MatchFn): RequestMatcher;
+  file(
+    name: string,
+    matcher: Partial<FileValue> | Array<Partial<FileValue>> | MatchFn
+  ): RequestMatcher {
+    matcher = typeof matcher === "function" ? matcher : isEqualTo(matcher);
+    this._filesMatchers.push(prop(name, matcher));
+    return this;
+  }
+
   body(value: JSONValue): RequestMatcher;
   body(fn: MatchFn): RequestMatcher;
   body(matcher: JSONValue | MatchFn): RequestMatcher {
@@ -146,6 +161,7 @@ export class RequestMatcher implements ContextMatcher {
     const def: RequestMatchDef = {
       body: this._bodyMatchers,
       cookies: this._cookiesMatchers,
+      files: this._filesMatchers,
       headers: this._headersMatchers,
       method: this._methodMatchers,
       params: this._paramsMatchers,

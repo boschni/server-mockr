@@ -1,3 +1,4 @@
+import FormData from "form-data";
 import "jest";
 import fetch from "node-fetch";
 
@@ -30,7 +31,12 @@ export function post(path: string, body?: any, headers?: HeadersMap) {
 
   headers = { ...headers };
 
-  if (body && !(body instanceof URLSearchParams)) {
+  if (
+    body &&
+    typeof body !== "string" &&
+    !(body instanceof URLSearchParams) &&
+    !(body instanceof FormData)
+  ) {
     body = JSON.stringify(body);
     headers["Content-Type"] = "application/json";
   }

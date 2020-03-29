@@ -1,6 +1,7 @@
 import bodyParser from "body-parser";
 import express from "express";
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
+import multer from "multer";
 
 import { Config } from "./Config";
 import {
@@ -15,11 +16,12 @@ import {
   ScenarioManagerRequestContext
 } from "./ScenarioManager";
 import {
+  createNotFoundResponseValue,
   createResponseValue,
   incomingMessageToRequestValue,
-  respondWithNotFound,
   respondWithResponseValue
 } from "./valueHelpers";
+import { ResponseValue } from "./Values";
 
 /*
  * SERVER MANAGER
@@ -38,12 +40,31 @@ export class ServerManager {
 
   startServer(port: number) {
     const app = express();
+
+    // Parses "application/json" requests (req.body)
     app.use(bodyParser.json());
+
+    // Parses "application/x-www-form-urlencoded" requests (req.body)
     app.use(
       bodyParser.urlencoded({
         extended: true
       })
     );
+
+    // Parses "multipart/form-data" requests (req.body + req.files)
+    const upload = multer({ storage: multer.memoryStorage() });
+    app.use(upload.any());
+
+    // Parses other requests as text (req.body)
+    app.use(
+      bodyParser.text({
+        type: req =>
+          req.headers["content-type"]
+            ? !req.headers["content-type"].startsWith("multipart/form-data")
+            : true
+      })
+    );
+
     app.use(this.onRequest);
 
     const server = createServer(app);
@@ -95,14 +116,13 @@ export class ServerManager {
       handled = await this.scenarioManager.onRequest(scenarioManagerRequestCtx);
     }
 
-    if (!handled) {
-      await respondWithNotFound(res);
-      return;
-    }
+    const finalResponse: ResponseValue = handled
+      ? response
+      : createNotFoundResponseValue();
 
-    await respondWithResponseValue(res, response);
+    await respondWithResponseValue(res, finalResponse);
 
-    requestLogger.logResponse(response);
+    requestLogger.logResponse(finalResponse);
 
     this.requestLogManager.log(requestLogger);
   };
