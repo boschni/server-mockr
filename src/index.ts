@@ -20,6 +20,27 @@ export {
 export { proxyRequest, ProxyRequest } from "./mock-server/ProxyRequest";
 export { Response, response } from "./mock-server/Response";
 export {
+  ConfigValue,
+  CookiesValue,
+  ExpectationValue,
+  FileValue,
+  FilesValue,
+  GlobalsValue,
+  HeadersValue,
+  MethodValue,
+  OutgoingRequestValue,
+  ParamsValue,
+  PathValue,
+  QueryValue,
+  RequestBodyValue,
+  RequestValue,
+  ResponseBodyValue,
+  ResponseValue,
+  StateValue,
+  TimesValue,
+  UrlValue,
+} from "./mock-server/Values";
+export {
   config,
   globals,
   request,
