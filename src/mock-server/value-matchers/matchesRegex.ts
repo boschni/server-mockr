@@ -9,7 +9,7 @@ export const matchesRegex = (regexValue: string | RegExp): MatchFn => {
       return {
         message: `${JSON.stringify(input)} should be a string`,
         name: "regex",
-        pass: false
+        pass: false,
       };
     }
 
@@ -18,7 +18,7 @@ export const matchesRegex = (regexValue: string | RegExp): MatchFn => {
     return {
       message: `${JSON.stringify(input)} should match regex ${regexValue}`,
       name: "matchesRegex",
-      pass
+      pass,
     };
   };
 

@@ -12,7 +12,7 @@ import {
   prop,
   request,
   ServerMockr,
-  startsWith
+  startsWith,
 } from "..";
 import { get, post, setup } from "./utils";
 

@@ -57,7 +57,7 @@ export class Expectation {
     afterRespondActions: [],
     next: false,
     verifyMatchers: [],
-    whenMatchers: []
+    whenMatchers: [],
   };
 
   constructor(...matchers: ContextMatcherInput[]) {

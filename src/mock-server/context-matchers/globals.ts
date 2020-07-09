@@ -3,7 +3,7 @@ import {
   isEqualTo,
   MatchFn,
   MatchResult,
-  prop
+  prop,
 } from "../value-matchers";
 import { ExpectationValue, JSONValue } from "../Values";
 import { ContextMatcher } from "./ContextMatcher";

@@ -7,7 +7,7 @@ import {
   MatchFn,
   MatchResult,
   prop,
-  RequestMatchDef
+  RequestMatchDef,
 } from "../value-matchers";
 import { ExpectationValue, FileValue, JSONValue, MethodValue } from "../Values";
 import { ContextMatcher } from "./ContextMatcher";
@@ -135,12 +135,12 @@ export class RequestMatcher implements ContextMatcher {
 
   file(
     name: string,
-    value: Partial<FileValue> | Array<Partial<FileValue>>
+    value: Partial<FileValue> | Partial<FileValue>[]
   ): RequestMatcher;
   file(name: string, fn: MatchFn): RequestMatcher;
   file(
     name: string,
-    matcher: Partial<FileValue> | Array<Partial<FileValue>> | MatchFn
+    matcher: Partial<FileValue> | Partial<FileValue>[] | MatchFn
   ): RequestMatcher {
     matcher = typeof matcher === "function" ? matcher : isEqualTo(matcher);
     this._filesMatchers.push(prop(name, matcher));
@@ -167,7 +167,7 @@ export class RequestMatcher implements ContextMatcher {
       params: this._paramsMatchers,
       path: this._pathMatchers,
       query: this._queryMatchers,
-      url: this._urlMatchers
+      url: this._urlMatchers,
     };
 
     const matcher = matchesRequest(def);

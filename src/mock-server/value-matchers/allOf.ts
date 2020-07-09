@@ -2,18 +2,18 @@ import { JSONValue } from "../Values";
 import { isEqualTo } from "./isEqualTo";
 import { addSubResult, isPassed, MatchFn, MatchResult } from "./MatchFn";
 
-export const allOf = (...matchers: Array<MatchFn | JSONValue>) => {
-  const fns = matchers.map(x => (typeof x === "function" ? x : isEqualTo(x)));
+export const allOf = (...matchers: (MatchFn | JSONValue)[]) => {
+  const fns = matchers.map((x) => (typeof x === "function" ? x : isEqualTo(x)));
 
   const matchFn: MatchFn = (input: unknown): MatchResult => {
-    const names = fns.map(x => x.matchName).join(", ");
+    const names = fns.map((x) => x.matchName).join(", ");
 
     const result: MatchResult = {
       message: `${JSON.stringify(
         input
       )} should match all of these validators: ${names}`,
       name: "allOf",
-      pass: true
+      pass: true,
     };
 
     for (const fn of fns) {

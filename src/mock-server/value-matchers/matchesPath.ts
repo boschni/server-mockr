@@ -33,7 +33,7 @@ export const matchesPath = (value: MatchesPathInput) => {
       message: `path "${input}" should match "${value}"`,
       name: "matchesPath",
       params: {},
-      pass: true
+      pass: true,
     };
 
     if (value === "*") {

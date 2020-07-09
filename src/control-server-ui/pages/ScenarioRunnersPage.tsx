@@ -8,7 +8,7 @@ import {
   TableBodyRow,
   TableHead,
   TableHeadCell,
-  TableHeadRow
+  TableHeadRow,
 } from "../components/Table";
 import { useFetch } from "../hooks/useFetch";
 import { usePersistentState } from "../hooks/usePersistentState";
@@ -31,7 +31,7 @@ export const ScenarioRunnersPage: React.FC = () => {
     return null;
   }
 
-  const filteredRunners = runners.filter(runner =>
+  const filteredRunners = runners.filter((runner) =>
     fuzzyMatch(runner.scenarioId, scenarioIdFilter)
   );
 
@@ -54,7 +54,7 @@ export const ScenarioRunnersPage: React.FC = () => {
           <input
             type="text"
             value={scenarioIdFilter}
-            onChange={e => setScenarioIdFilter(e.target.value)}
+            onChange={(e) => setScenarioIdFilter(e.target.value)}
           />
         </div>
       </div>
@@ -71,7 +71,7 @@ export const ScenarioRunnersPage: React.FC = () => {
           </TableHeadRow>
         </TableHead>
         <TableBody>
-          {filteredRunners.map(runner => (
+          {filteredRunners.map((runner) => (
             <React.Fragment key={runner.id}>
               <TableBodyRow
                 row={

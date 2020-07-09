@@ -6,20 +6,20 @@ import multer from "multer";
 import { Config } from "./Config";
 import {
   ExpectationManager,
-  ExpectationManagerRequestContext
+  ExpectationManagerRequestContext,
 } from "./ExpectationManager";
 import { Logger } from "./Logger";
 import { RequestLogger } from "./request-logging/RequestLogger";
 import { RequestLogManager } from "./request-logging/RequestLogManager";
 import {
   ScenarioManager,
-  ScenarioManagerRequestContext
+  ScenarioManagerRequestContext,
 } from "./ScenarioManager";
 import {
   createNotFoundResponseValue,
   createResponseValue,
   incomingMessageToRequestValue,
-  respondWithResponseValue
+  respondWithResponseValue,
 } from "./valueHelpers";
 import { ResponseValue } from "./Values";
 
@@ -47,7 +47,7 @@ export class ServerManager {
     // Parses "application/x-www-form-urlencoded" requests (req.body)
     app.use(
       bodyParser.urlencoded({
-        extended: true
+        extended: true,
       })
     );
 
@@ -58,10 +58,10 @@ export class ServerManager {
     // Parses other requests as text (req.body)
     app.use(
       bodyParser.text({
-        type: req =>
+        type: (req) =>
           req.headers["content-type"]
             ? !req.headers["content-type"].startsWith("multipart/form-data")
-            : true
+            : true,
       })
     );
 
@@ -82,7 +82,7 @@ export class ServerManager {
     const promises = [];
 
     for (const server of this.servers) {
-      const promise = new Promise(resolve => {
+      const promise = new Promise((resolve) => {
         server.close(resolve);
       });
       promises.push(promise);
@@ -99,7 +99,7 @@ export class ServerManager {
     const globalExpectationManagerRequestCtx: ExpectationManagerRequestContext = {
       request,
       requestLogger,
-      response
+      response,
     };
 
     let handled = await this.globalExpectationManager.onRequest(
@@ -110,7 +110,7 @@ export class ServerManager {
       const scenarioManagerRequestCtx: ScenarioManagerRequestContext = {
         request,
         requestLogger,
-        response
+        response,
       };
 
       handled = await this.scenarioManager.onRequest(scenarioManagerRequestCtx);

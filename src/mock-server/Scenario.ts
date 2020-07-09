@@ -10,7 +10,7 @@ import {
   RequestValue,
   ResponseValue,
   StateDefinition,
-  StateValue
+  StateValue,
 } from "./Values";
 
 /*
@@ -43,7 +43,7 @@ export interface OnBootstrapScenarioContext {
  */
 
 const md = new MarkdownIt({
-  html: true
+  html: true,
 });
 
 /*
@@ -144,11 +144,11 @@ export class Scenario {
   }
 
   getVisibleConfigParams(): ConfigDefinition[] {
-    return this._configDefinitions.filter(x => !x.schema.hidden);
+    return this._configDefinitions.filter((x) => !x.schema.hidden);
   }
 
   getVisibleStateParams(): StateDefinition[] {
-    return this._stateDefinitions.filter(x => !x.schema.hidden);
+    return this._stateDefinitions.filter((x) => !x.schema.hidden);
   }
 
   getExpectations(): Expectation[] {

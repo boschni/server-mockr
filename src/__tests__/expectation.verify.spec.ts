@@ -22,23 +22,17 @@ describe("expectation.verify()", () => {
 
   describe("()", () => {
     test("should match when verify matches", async () => {
-      mockr
-        .when("/test")
-        .verify("/test")
-        .respond("ok");
+      mockr.when("/test").verify("/test").respond("ok");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when verify not matches", async () => {
-      mockr
-        .when("/test")
-        .verify("/test-2")
-        .respond("ok");
+      mockr.when("/test").verify("/test-2").respond("ok");
       const res = await get("/test");
       expect(res.status).toEqual(400);
       expect(await res.json()).toMatchObject({
-        verifyResult: { message: "matches request" }
+        verifyResult: { message: "matches request" },
       });
     });
 
@@ -56,7 +50,7 @@ describe("expectation.verify()", () => {
       const res2 = await post("/test", { a: "c" });
       expect(res2.status).toEqual(400);
       expect(await res2.json()).toMatchObject({
-        verifyResult: { message: "matches request" }
+        verifyResult: { message: "matches request" },
       });
     });
 

@@ -68,7 +68,7 @@ describe("expectation.respond()", () => {
       mockr
         .when("/test")
         .respond(
-          () => new Promise(resolve => setTimeout(() => resolve("ok"), 100))
+          () => new Promise((resolve) => setTimeout(() => resolve("ok"), 100))
         );
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
@@ -79,7 +79,7 @@ describe("expectation.respond()", () => {
         .when("/test")
         .respond(
           () =>
-            new Promise(resolve =>
+            new Promise((resolve) =>
               setTimeout(() => resolve(response({ a: "b" })), 100)
             )
         );

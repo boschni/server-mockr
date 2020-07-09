@@ -6,7 +6,7 @@ export const endsWith = (suffix: string) => {
       return {
         message: `${JSON.stringify(input)} should be a string`,
         name: "endsWith",
-        pass: false
+        pass: false,
       };
     }
 
@@ -15,7 +15,7 @@ export const endsWith = (suffix: string) => {
     return {
       message: `${JSON.stringify(input)} should end with "${suffix}"`,
       name: "endsWith",
-      pass
+      pass,
     };
   };
 

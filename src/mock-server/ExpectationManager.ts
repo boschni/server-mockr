@@ -2,7 +2,7 @@ import { Config } from "./Config";
 import { Expectation } from "./Expectation";
 import {
   ExpectationRequestContext,
-  ExpectationRunner
+  ExpectationRunner,
 } from "./ExpectationRunner";
 import { Logger } from "./Logger";
 import { RequestExpectationLogger } from "./request-logging/RequestExpectationLogger";
@@ -13,7 +13,7 @@ import {
   ExpectationValue,
   RequestValue,
   ResponseValue,
-  StateValue
+  StateValue,
 } from "./Values";
 
 /*
@@ -109,12 +109,12 @@ export class ExpectationManager {
         req: ctx.request,
         res: ctx.response,
         state: this.expectationState,
-        times: 0
+        times: 0,
       };
 
       const expectationCtx: ExpectationRequestContext = {
         expectationValue,
-        expectationLogger
+        expectationLogger,
       };
 
       const handled = await runner.onRequest(expectationCtx);

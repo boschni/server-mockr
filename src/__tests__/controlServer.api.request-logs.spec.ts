@@ -3,7 +3,7 @@ import "jest";
 import { ServerMockr } from "..";
 import {
   ApiCreateScenarioRunnerSuccessResponse,
-  ApiGetScenarioRunnerHARSuccessResponse
+  ApiGetScenarioRunnerHARSuccessResponse,
 } from "../control-server/ControlServer";
 import { controlUrl, get, post, setup } from "./utils";
 
@@ -26,10 +26,7 @@ describe("controlServer", () => {
 
   describe("logs", () => {
     test("should log a matching request", async () => {
-      mockr
-        .scenario("id")
-        .when("/test")
-        .respond("ok");
+      mockr.scenario("id").when("/test").respond("ok");
 
       const createRes = await post(
         controlUrl("/api/scenarios/id/scenario-runners")
@@ -49,35 +46,32 @@ describe("controlServer", () => {
             {
               _id: 1,
               _requestValue: {
-                path: "/test"
+                path: "/test",
               },
               _responseValue: {
-                body: "ok"
+                body: "ok",
               },
               _url: "/test",
               request: {
                 postData: {
                   mimeType: "application/json",
-                  text: '{"a":"b"}'
-                }
+                  text: '{"a":"b"}',
+                },
               },
               response: {
                 content: {
                   mimeType: "text/plain",
-                  text: "ok"
-                }
-              }
-            }
-          ]
-        }
+                  text: "ok",
+                },
+              },
+            },
+          ],
+        },
       });
     });
 
     test("should log a non matching request", async () => {
-      mockr
-        .scenario("id")
-        .when("/test")
-        .respond("ok");
+      mockr.scenario("id").when("/test").respond("ok");
 
       const createRes = await post(
         controlUrl("/api/scenarios/id/scenario-runners")
@@ -97,15 +91,15 @@ describe("controlServer", () => {
             {
               _id: 2,
               _requestValue: {
-                path: "/test-2"
+                path: "/test-2",
               },
               _responseValue: {
                 body: "server-mockr: Not Found",
-                status: 404
-              }
-            }
-          ]
-        }
+                status: 404,
+              },
+            },
+          ],
+        },
       });
     });
   });

@@ -8,14 +8,14 @@ export {
   HARLog,
   HARLogEntry,
   HARRequest,
-  HARResponse
+  HARResponse,
 } from "./mock-server/request-logging/HAR";
 export { Expectation, expect } from "./mock-server/Expectation";
 export {
   OnBootstrapScenarioCallback,
   OnStartScenarioCallback,
   Scenario,
-  scenario
+  scenario,
 } from "./mock-server/Scenario";
 export { proxyRequest, ProxyRequest } from "./mock-server/ProxyRequest";
 export { Response, response } from "./mock-server/Response";
@@ -23,7 +23,7 @@ export {
   config,
   globals,
   request,
-  state
+  state,
 } from "./mock-server/context-matchers";
 export {
   MatchFn,
@@ -43,6 +43,6 @@ export {
   oneOf,
   pointer,
   prop,
-  startsWith
+  startsWith,
 } from "./mock-server/value-matchers";
 export default ServerMockr;

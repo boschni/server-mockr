@@ -6,7 +6,7 @@ export const isLowerThanOrEqual = (number: number) => {
     return {
       message: `${input} should be lower than or equal to ${number}`,
       name: "isLowerThanOrEqual",
-      pass
+      pass,
     };
   };
 

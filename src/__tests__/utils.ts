@@ -22,7 +22,7 @@ export function get(path: string, headers?: HeadersMap) {
 
   return fetch(url, {
     method: "GET",
-    headers
+    headers,
   });
 }
 
@@ -44,7 +44,7 @@ export function post(path: string, body?: any, headers?: HeadersMap) {
   return fetch(url, {
     method: "POST",
     headers,
-    body
+    body,
   });
 }
 
@@ -53,12 +53,12 @@ export function del(path: string, headers?: HeadersMap) {
 
   return fetch(url, {
     method: "DELETE",
-    headers
+    headers,
   });
 }
 
 export async function waitFor(ms: number) {
-  return await new Promise(resolve => setTimeout(resolve, ms));
+  return await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function setup(config?: InitialConfig) {
@@ -66,10 +66,10 @@ export function setup(config?: InitialConfig) {
     controlServerPort: 6272,
     mockServerPort: 6273,
     globals: {
-      testValue: "something"
+      testValue: "something",
     },
     logLevel: "error",
-    ...config
+    ...config,
   });
 
   mockr.start();

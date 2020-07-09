@@ -27,7 +27,7 @@ describe("expectation.afterRespond()", () => {
       mockr
         .when("/test")
         .respond("ok")
-        .afterRespond(ctx => {
+        .afterRespond((ctx) => {
           ctxArgument = ctx;
         });
 

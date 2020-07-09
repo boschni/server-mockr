@@ -6,7 +6,7 @@ import {
   ContextMatcherInput,
   Expectation,
   ExpectationConfig,
-  RespondInput
+  RespondInput,
 } from "./Expectation";
 import { Logger } from "./Logger";
 // tslint:disable-next-line: no-circular-imports
@@ -71,7 +71,7 @@ export class ExpectationRunner {
       times,
       verifyFailedRespondInput,
       verifyMatchers,
-      whenMatchers
+      whenMatchers,
     } = this.expectationConfig;
 
     expectationValue.times = this.timesMatched;

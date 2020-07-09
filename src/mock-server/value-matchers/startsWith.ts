@@ -6,7 +6,7 @@ export const startsWith = (prefix: string) => {
       return {
         message: `${JSON.stringify(input)} should be a string`,
         name: "startsWith",
-        pass: false
+        pass: false,
       };
     }
 
@@ -15,7 +15,7 @@ export const startsWith = (prefix: string) => {
     return {
       message: `${JSON.stringify(input)} should start with "${prefix}"`,
       name: "startsWith",
-      pass
+      pass,
     };
   };
 

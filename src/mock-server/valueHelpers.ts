@@ -15,7 +15,7 @@ import {
   RequestValue,
   ResponseValue,
   StateDefinition,
-  StateValue
+  StateValue,
 } from "./Values";
 
 /*
@@ -37,7 +37,7 @@ export const incomingMessageToRequestValue = (
       files = appendValueToArrayValueMap<FileValue>(files, file.fieldname, {
         fileName: file.originalname,
         mimeType: file.mimetype,
-        size: file.size
+        size: file.size,
       });
     }
   }
@@ -51,7 +51,7 @@ export const incomingMessageToRequestValue = (
     params: {},
     path: url.pathname!,
     query,
-    url: req.url!
+    url: req.url!,
   };
 
   return request;
@@ -59,7 +59,7 @@ export const incomingMessageToRequestValue = (
 
 export const createResponseValue = (): ResponseValue => {
   const response: ResponseValue = {
-    headers: {}
+    headers: {},
   };
   return response;
 };
@@ -67,10 +67,10 @@ export const createResponseValue = (): ResponseValue => {
 export const createNotFoundResponseValue = (): ResponseValue => {
   return {
     headers: {
-      "Content-Type": "text/plain"
+      "Content-Type": "text/plain",
     },
     status: 404,
-    body: "server-mockr: Not Found"
+    body: "server-mockr: Not Found",
   };
 };
 
@@ -78,7 +78,7 @@ export const respondWithResponseValue = async (
   res: ServerResponse,
   response: ResponseValue
 ): Promise<void> => {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     res.statusCode = response.status || 200;
 
     for (const [name, value] of Object.entries(response.headers)) {
@@ -215,7 +215,7 @@ export const incomingRequestValueToOutgoingRequestValue = (
     headers: req.headers,
     method: req.method,
     query: req.query,
-    url: req.path
+    url: req.path,
   };
 };
 
@@ -274,7 +274,7 @@ export const mergeOutgoingRequestValues = (
     headers: req2.headers ?? req1.headers,
     method: req2.method ?? req1.method,
     query: req2.query ?? req1.query,
-    url: req2.url ?? req1.url
+    url: req2.url ?? req1.url,
   };
 
   if (req1.headers && req2.headers) {
@@ -339,6 +339,6 @@ export const executeOutgoingRequest = async (
     body,
     headers,
     status,
-    statusText
+    statusText,
   };
 };

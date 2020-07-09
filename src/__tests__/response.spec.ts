@@ -75,11 +75,13 @@ describe("response()", () => {
     });
 
     test("should respond with correct multiple headers", async () => {
-      mockr.when("/test").respond(
-        response()
-          .header("Cache-Control", "no-store")
-          .header("Server", "mockr")
-      );
+      mockr
+        .when("/test")
+        .respond(
+          response()
+            .header("Cache-Control", "no-store")
+            .header("Server", "mockr")
+        );
       const res = await get("/test");
       expect(res.headers.get("server")).toEqual("mockr");
       expect(res.headers.get("cache-control")).toEqual("no-store");
@@ -98,11 +100,7 @@ describe("response()", () => {
     });
 
     test("should respond with correct Set-Cookie header for multiple cookies", async () => {
-      mockr.when("/test").respond(
-        response()
-          .cookie("a", "b")
-          .cookie("b", "c")
-      );
+      mockr.when("/test").respond(response().cookie("a", "b").cookie("b", "c"));
       const res = await get("/test");
       expect(res.headers.get("set-cookie")).toEqual("a=b, b=c");
     });

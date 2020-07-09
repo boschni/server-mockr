@@ -10,7 +10,7 @@ import {
   SetCookiesAction,
   SetHeadersAction,
   SetStatusAction,
-  SetStatusTextAction
+  SetStatusTextAction,
 } from "./respond-actions";
 import { ExpectationValue } from "./Values";
 

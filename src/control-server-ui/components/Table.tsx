@@ -45,7 +45,7 @@ interface TableBodyRowProps {
 
 export const TableBodyRow: React.FC<TableBodyRowProps> = ({
   row,
-  expandableRow
+  expandableRow,
 }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -58,7 +58,7 @@ export const TableBodyRow: React.FC<TableBodyRowProps> = ({
 
   return (
     <React.Fragment>
-      <tr className="table__row" onClick={e => onClickRow(e)}>
+      <tr className="table__row" onClick={(e) => onClickRow(e)}>
         {row}
       </tr>
       {expandableRow && expanded && (

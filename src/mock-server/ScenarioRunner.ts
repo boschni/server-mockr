@@ -1,7 +1,7 @@
 import { Config } from "./Config";
 import {
   ExpectationManager,
-  ExpectationManagerRequestContext
+  ExpectationManagerRequestContext,
 } from "./ExpectationManager";
 import { Logger } from "./Logger";
 // tslint:disable-next-line: no-circular-imports
@@ -14,7 +14,7 @@ import {
   ExpectationValue,
   RequestValue,
   ResponseValue,
-  StateValue
+  StateValue,
 } from "./Values";
 
 /*
@@ -81,7 +81,7 @@ export class ScenarioRunner {
         config: defaultedConfig,
         globals: this.config.globals,
         scenario: runtimeScenario,
-        state: defaultedState
+        state: defaultedState,
       };
 
       onStart(ctx);
@@ -118,7 +118,7 @@ export class ScenarioRunner {
       globals: this.config.globals,
       req,
       res,
-      state: this.expectationManager.getState()
+      state: this.expectationManager.getState(),
     };
 
     const response = onBootstrap(ctx);
@@ -133,7 +133,7 @@ export class ScenarioRunner {
       req: ctx.req,
       res: ctx.res,
       state: ctx.state,
-      times: 1
+      times: 1,
     };
 
     await response._apply(expectationValue);
@@ -147,7 +147,7 @@ export class ScenarioRunner {
     const expectationManagerCtx: ExpectationManagerRequestContext = {
       scenarioLogger: ctx.scenarioLogger,
       request: ctx.request,
-      response: ctx.response
+      response: ctx.response,
     };
 
     return this.expectationManager.onRequest(expectationManagerCtx);

@@ -10,7 +10,7 @@ export const matchesObject = (value: unknown) => {
         value
       )}`,
       name: "matchObject",
-      pass: true
+      pass: true,
     };
 
     try {

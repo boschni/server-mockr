@@ -38,5 +38,5 @@ export async function waitFor(
     ms = Math.floor(min + Math.random() * (max - min));
   }
 
-  await new Promise(resolve => setTimeout(resolve, ms));
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }

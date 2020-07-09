@@ -32,7 +32,7 @@ export class SetHeadersAction implements RespondAction {
       const values = Array.isArray(value) ? value : [value];
 
       const newValues = values.concat(appendValues);
-      const newValuesSanitized = newValues.map(x => String(x));
+      const newValuesSanitized = newValues.map((x) => String(x));
 
       ctx.res.headers[name] = newValuesSanitized;
     }

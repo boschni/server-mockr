@@ -25,29 +25,29 @@ export class RequestLogManager {
   }
 
   getHARForScenario(id: string): HAR {
-    const logs = this.logs.filter(log =>
-      log.scenarioRunners.some(runner => runner.scenarioId === id)
+    const logs = this.logs.filter((log) =>
+      log.scenarioRunners.some((runner) => runner.scenarioId === id)
     );
     return toHAR(logs);
   }
 
   getHARForMatchedScenario(id: string): HAR {
-    const logs = this.logs.filter(log =>
-      log.matchedScenarioRunners.some(runner => runner.scenarioId === id)
+    const logs = this.logs.filter((log) =>
+      log.matchedScenarioRunners.some((runner) => runner.scenarioId === id)
     );
     return toHAR(logs);
   }
 
   getHARForScenarioRunner(id: number): HAR {
-    const logs = this.logs.filter(log =>
-      log.scenarioRunners.some(runner => runner.id === id)
+    const logs = this.logs.filter((log) =>
+      log.scenarioRunners.some((runner) => runner.id === id)
     );
     return toHAR(logs);
   }
 
   getHARForMatchedScenarioRunner(id: number): HAR {
-    const logs = this.logs.filter(log =>
-      log.matchedScenarioRunners.some(runner => runner.id === id)
+    const logs = this.logs.filter((log) =>
+      log.matchedScenarioRunners.some((runner) => runner.id === id)
     );
     return toHAR(logs);
   }

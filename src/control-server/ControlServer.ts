@@ -13,14 +13,14 @@ import { ScenarioRunner } from "../mock-server/ScenarioRunner";
 import {
   createResponseValue,
   incomingMessageToRequestValue,
-  respondWithResponseValue
+  respondWithResponseValue,
 } from "../mock-server/valueHelpers";
 import {
   ConfigDefinition,
   ConfigValue,
   QueryValue,
   StateDefinition,
-  StateValue
+  StateValue,
 } from "../mock-server/Values";
 
 /*
@@ -71,7 +71,7 @@ export class ControlServer {
     this.app.use(bodyParser.json());
     this.app.use(
       bodyParser.urlencoded({
-        extended: true
+        extended: true,
       })
     );
     this.app.get("/", this.handleGetRoot);
@@ -123,7 +123,7 @@ export class ControlServer {
   }
 
   stop() {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (this.server) {
         this.server.close(resolve);
       } else {
@@ -163,7 +163,7 @@ export class ControlServer {
   private handleGetScenarios = async (_req: Request, res: Response) => {
     const apiScenarios = this.scenarioManager
       .getScenarios()
-      .map(scenario => this.scenarioToApiScenario(scenario));
+      .map((scenario) => this.scenarioToApiScenario(scenario));
     res.json(apiScenarios);
   };
 
@@ -208,7 +208,7 @@ export class ControlServer {
 
     const runner = this.scenarioManager.createScenarioRunner(scenarioId, {
       config,
-      state
+      state,
     });
 
     if (!runner) {
@@ -283,7 +283,7 @@ export class ControlServer {
 
     const runner = this.scenarioManager.createScenarioRunner(scenarioId, {
       config,
-      state
+      state,
     });
 
     if (!runner) {
@@ -304,7 +304,7 @@ export class ControlServer {
   private handleGetScenarioRunners = async (_req: Request, res: Response) => {
     const apiScenarios = this.scenarioManager
       .getScenarioRunners()
-      .map(runner => this.scenarioRunnerToApiScenarioRunner(runner));
+      .map((runner) => this.scenarioRunnerToApiScenarioRunner(runner));
     res.json(apiScenarios);
   };
 
@@ -377,15 +377,15 @@ export class ControlServer {
     const id = scenario.getId();
     const allRunners = this.scenarioManager.getActiveScenarioRunners();
     const runners = allRunners
-      .filter(x => x.getScenarioId() === id)
-      .map(x => this.scenarioRunnerToApiScenarioRunner(x));
+      .filter((x) => x.getScenarioId() === id)
+      .map((x) => this.scenarioRunnerToApiScenarioRunner(x));
     return {
       configDefinitions: scenario.getVisibleConfigParams(),
       description: scenario.getFormattedDescription(),
       id,
       runners,
       stateDefinitions: scenario.getVisibleStateParams(),
-      tags: scenario.getTags()
+      tags: scenario.getTags(),
     };
   }
 
@@ -398,7 +398,7 @@ export class ControlServer {
       scenarioId: runner.getScenarioId(),
       startedDateTime: runner.getStartedDateTime(),
       state: runner.getState(),
-      status: runner.isActive() ? "STARTED" : "STOPPED"
+      status: runner.isActive() ? "STARTED" : "STOPPED",
     };
   }
 }

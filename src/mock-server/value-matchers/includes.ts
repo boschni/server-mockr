@@ -6,7 +6,7 @@ export const includes = (searchString: string) => {
       return {
         message: `${JSON.stringify(input)} should be a string`,
         name: "includes",
-        pass: false
+        pass: false,
       };
     }
 
@@ -15,7 +15,7 @@ export const includes = (searchString: string) => {
     return {
       message: `${JSON.stringify(input)} should include "${searchString}"`,
       name: "includes",
-      pass
+      pass,
     };
   };
 

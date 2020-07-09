@@ -63,21 +63,23 @@ describe("response.proxy()", () => {
         )
         .respond(response({ a: "b" }).status(500));
 
-      mockr.when("/test-2").respond(
-        response().proxy(
-          proxyRequest("http://localhost:6273/test")
-            .cookie("proxy-cookie", "proxy-cookie-value")
-            .header("proxy-header", "proxy-header-value")
-            .query("proxy-query", "proxy-query-value")
-        )
-      );
+      mockr
+        .when("/test-2")
+        .respond(
+          response().proxy(
+            proxyRequest("http://localhost:6273/test")
+              .cookie("proxy-cookie", "proxy-cookie-value")
+              .header("proxy-header", "proxy-header-value")
+              .query("proxy-query", "proxy-query-value")
+          )
+        );
 
       const res = await post(
         "/test-2?client-query=client-query-value",
         { b: "c" },
         {
           "client-header": "client-header-value",
-          Cookie: "client-cookie=client-cookie-value"
+          Cookie: "client-cookie=client-cookie-value",
         }
       );
 

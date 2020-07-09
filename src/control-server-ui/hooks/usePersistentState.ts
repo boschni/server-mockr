@@ -20,7 +20,7 @@ export function usePersistentState<S>(
     return storedValue ?? initialState;
   });
 
-  const outerSetValue = useCallback(newValue => {
+  const outerSetValue = useCallback((newValue) => {
     localStorage.setItem(key, JSON.stringify(newValue));
     setValue(newValue);
   }, []);

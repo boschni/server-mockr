@@ -22,10 +22,7 @@ describe("expectation.times()", () => {
 
   describe("()", () => {
     test("should respond only one time", async () => {
-      mockr
-        .when("/test")
-        .times(1)
-        .respond("ok");
+      mockr.when("/test").times(1).respond("ok");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
       const res2 = await get("/test");
@@ -33,10 +30,7 @@ describe("expectation.times()", () => {
     });
 
     test("should respond two times", async () => {
-      mockr
-        .when("/test")
-        .times(2)
-        .respond("ok");
+      mockr.when("/test").times(2).respond("ok");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
       const res2 = await get("/test");
@@ -46,14 +40,8 @@ describe("expectation.times()", () => {
     });
 
     test("should continue to the next expectation", async () => {
-      mockr
-        .when("/test")
-        .times(1)
-        .respond("ok");
-      mockr
-        .when("/test")
-        .times(1)
-        .respond("ok2");
+      mockr.when("/test").times(1).respond("ok");
+      mockr.when("/test").times(1).respond("ok2");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
       const res2 = await get("/test");

@@ -6,7 +6,7 @@ import { Scenario } from "./Scenario";
 import {
   ScenarioRequestContext,
   ScenarioRunner,
-  StartScenarioRunnerParams
+  StartScenarioRunnerParams,
 } from "./ScenarioRunner";
 import { RequestValue, ResponseValue } from "./Values";
 
@@ -102,7 +102,7 @@ export class ScenarioManager {
   }
 
   getScenario(id: string): Scenario | undefined {
-    return this.scenarios.find(x => x.getId() === id);
+    return this.scenarios.find((x) => x.getId() === id);
   }
 
   getScenarios(): Scenario[] {
@@ -110,7 +110,7 @@ export class ScenarioManager {
   }
 
   getScenarioRunner(id?: number): ScenarioRunner | undefined {
-    return this.scenarioRunners.find(x => x.getId() === id);
+    return this.scenarioRunners.find((x) => x.getId() === id);
   }
 
   getScenarioRunners(): ScenarioRunner[] {
@@ -118,7 +118,7 @@ export class ScenarioManager {
   }
 
   getActiveScenarioRunners(): ScenarioRunner[] {
-    return this.scenarioRunners.filter(x => x.isActive());
+    return this.scenarioRunners.filter((x) => x.isActive());
   }
 
   async onRequest(ctx: ScenarioManagerRequestContext): Promise<boolean> {
@@ -133,7 +133,7 @@ export class ScenarioManager {
       const scenarioRequestContext: ScenarioRequestContext = {
         request: ctx.request,
         response: ctx.response,
-        scenarioLogger
+        scenarioLogger,
       };
 
       const handled = await runner.onRequest(scenarioRequestContext);

@@ -29,7 +29,7 @@ export class SetCookiesAction implements RespondAction {
       ? headerValue
       : [headerValue];
 
-    const additionalHeaderValues = Object.keys(this.map).map(name => {
+    const additionalHeaderValues = Object.keys(this.map).map((name) => {
       const mapValue = this.map[name];
       const value = typeof mapValue === "string" ? mapValue : mapValue.value;
       const options =
@@ -39,7 +39,7 @@ export class SetCookiesAction implements RespondAction {
 
     const newHeaderValues = headersValues
       .concat(additionalHeaderValues)
-      .map(x => String(x));
+      .map((x) => String(x));
 
     ctx.res.headers["Set-Cookie"] = newHeaderValues;
   }

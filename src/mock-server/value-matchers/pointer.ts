@@ -13,7 +13,7 @@ export const pointer = (ptr: string, matcher: MatchFn | JSONValue) => {
         input
       )} should match validator ${fn.matchName}`,
       name: "pointer",
-      pass: true
+      pass: true,
     };
 
     const value =

@@ -27,12 +27,12 @@ const configDefaults: ConfigDefaults = {
   logLevel: "info",
   mockServerPort: 3002,
   multipleScenarioRunners: false,
-  scenarios: []
+  scenarios: [],
 };
 
 export function createConfig(initialConfig?: InitialConfig): Config {
   return {
     ...configDefaults,
-    ...initialConfig
+    ...initialConfig,
   };
 }

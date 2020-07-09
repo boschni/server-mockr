@@ -116,11 +116,11 @@ export function toHAR(logs: RequestLog[]): HAR {
     log: {
       creator: {
         name: "Server Mockr",
-        version: "1.0.0"
+        version: "1.0.0",
       },
       version: "1.2",
-      entries: logs.map(requestLogToEntry)
-    }
+      entries: logs.map(requestLogToEntry),
+    },
   };
 }
 
@@ -140,7 +140,7 @@ function requestLogToEntry(log: RequestLog): HARLogEntry {
     request: requestValueToHARRequest(log.requestValue),
     response: responseValueToHARResponse(log.responseValue!),
     startedDateTime: log.startedDateTime,
-    time: timings.receive + timings.send + timings.wait
+    time: timings.receive + timings.send + timings.wait,
   };
 }
 
@@ -153,7 +153,7 @@ function requestValueToHARRequest(req: RequestValue): HARRequest {
       value,
       expires: null,
       httpOnly: false,
-      secure: false
+      secure: false,
     });
   }
 
@@ -164,13 +164,13 @@ function requestValueToHARRequest(req: RequestValue): HARRequest {
       for (const arrayValue of value) {
         headers.push({
           name,
-          value: arrayValue
+          value: arrayValue,
         });
       }
     } else if (typeof value === "string") {
       headers.push({
         name,
-        value
+        value,
       });
     }
   }
@@ -182,13 +182,13 @@ function requestValueToHARRequest(req: RequestValue): HARRequest {
       for (const arrayValue of value) {
         queryString.push({
           name,
-          value: arrayValue
+          value: arrayValue,
         });
       }
     } else if (typeof value === "string") {
       queryString.push({
         name,
-        value
+        value,
       });
     }
   }
@@ -201,7 +201,7 @@ function requestValueToHARRequest(req: RequestValue): HARRequest {
 
     postData = {
       mimeType: "application/x-www-form-urlencoded",
-      params
+      params,
     };
 
     for (const [name, value] of Object.entries(req.body)) {
@@ -209,13 +209,13 @@ function requestValueToHARRequest(req: RequestValue): HARRequest {
         for (const arrayValue of value) {
           params.push({
             name,
-            value: arrayValue
+            value: arrayValue,
           });
         }
       } else if (typeof value === "string") {
         params.push({
           name,
-          value
+          value,
         });
       }
     }
@@ -224,7 +224,7 @@ function requestValueToHARRequest(req: RequestValue): HARRequest {
 
     postData = {
       mimeType: "multipart/form-data",
-      params
+      params,
     };
 
     for (const [name, value] of Object.entries(req.body)) {
@@ -232,13 +232,13 @@ function requestValueToHARRequest(req: RequestValue): HARRequest {
         for (const arrayValue of value) {
           params.push({
             name,
-            value: arrayValue
+            value: arrayValue,
           });
         }
       } else if (typeof value === "string") {
         params.push({
           name,
-          value
+          value,
         });
       }
     }
@@ -249,26 +249,26 @@ function requestValueToHARRequest(req: RequestValue): HARRequest {
           params.push({
             contentType: arrayValue.mimeType,
             fileName: arrayValue.fileName,
-            name
+            name,
           });
         }
       } else if (value) {
         params.push({
           contentType: value.mimeType,
           fileName: value.fileName,
-          name
+          name,
         });
       }
     }
   } else if (contentType.startsWith("application/json")) {
     postData = {
       mimeType: contentType,
-      text: JSON.stringify(req.body)
+      text: JSON.stringify(req.body),
     };
   } else if (typeof req.body === "string") {
     postData = {
       mimeType: contentType,
-      text: req.body
+      text: req.body,
     };
   }
 
@@ -281,7 +281,7 @@ function requestValueToHARRequest(req: RequestValue): HARRequest {
     method: req.method,
     postData,
     queryString,
-    url: req.url
+    url: req.url,
   };
 }
 
@@ -295,13 +295,13 @@ function responseValueToHARResponse(res: ResponseValue): HARResponse {
       for (const arrayValue of value) {
         headers.push({
           name,
-          value: arrayValue
+          value: arrayValue,
         });
       }
     } else if (typeof value === "string") {
       headers.push({
         name,
-        value
+        value,
       });
     }
   }
@@ -312,7 +312,7 @@ function responseValueToHARResponse(res: ResponseValue): HARResponse {
   const content: HARResponseContent = {
     mimeType: contentType,
     size: Buffer.byteLength(res.body || ""),
-    text: res.body ?? ""
+    text: res.body ?? "",
   };
 
   return {
@@ -324,7 +324,7 @@ function responseValueToHARResponse(res: ResponseValue): HARResponse {
     httpVersion: "HTTP/1.1",
     redirectURL: location || "",
     status: res.status || 200,
-    statusText: res.statusText || ""
+    statusText: res.statusText || "",
   };
 }
 

@@ -39,10 +39,7 @@ describe("expectation.next()", () => {
     });
 
     test("values set in a next expectation should override the previous ones", async () => {
-      mockr
-        .when("/test")
-        .respond("ok1")
-        .next();
+      mockr.when("/test").respond("ok1").next();
       mockr.when("/test").respond("ok2");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok2");

@@ -2,7 +2,7 @@ import { OutgoingRequestBuilder } from "../OutgoingRequestBuilder";
 import {
   executeOutgoingRequest,
   incomingRequestValueToOutgoingRequestValue,
-  mergeOutgoingRequestValues
+  mergeOutgoingRequestValues,
 } from "../valueHelpers";
 import { ExpectationValue } from "../Values";
 import { RespondAction } from "./RespondAction";

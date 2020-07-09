@@ -100,36 +100,20 @@ describe("request()", () => {
 
   describe("pathParam()", () => {
     test("should match on path param", async () => {
-      mockr
-        .when(
-          request()
-            .path("/test/:id")
-            .param("id", "1")
-        )
-        .respond("ok");
+      mockr.when(request().path("/test/:id").param("id", "1")).respond("ok");
       const res = await get("/test/1");
       expect(await res.text()).toEqual("ok");
     });
 
     test("should not match on path param", async () => {
-      mockr
-        .when(
-          request()
-            .path("/test/:id")
-            .param("id", "1")
-        )
-        .respond("ok");
+      mockr.when(request().path("/test/:id").param("id", "1")).respond("ok");
       const res = await get("/test/2");
       expect(res.status).toEqual(404);
     });
 
     test("should match on path param with match function", async () => {
       mockr
-        .when(
-          request()
-            .path("/test/:id")
-            .param("id", anyOf("1", "2"))
-        )
+        .when(request().path("/test/:id").param("id", anyOf("1", "2")))
         .respond("ok");
       const res = await get("/test/1");
       expect(await res.text()).toEqual("ok");
@@ -137,11 +121,7 @@ describe("request()", () => {
 
     test("should not match on path param with match function", async () => {
       mockr
-        .when(
-          request()
-            .path("/test/:id")
-            .param("id", anyOf("1", "2"))
-        )
+        .when(request().path("/test/:id").param("id", anyOf("1", "2")))
         .respond("ok");
       const res = await get("/test/3");
       expect(res.status).toEqual(404);
@@ -184,13 +164,13 @@ describe("request()", () => {
     });
 
     test("should match on custom match function", async () => {
-      mockr.when(request().method(x => x === "POST")).respond("ok");
+      mockr.when(request().method((x) => x === "POST")).respond("ok");
       const res = await post("/test");
       expect(await res.text()).toEqual("ok");
     });
 
     test("should not match on custom match function", async () => {
-      mockr.when(request().method(x => x === "POST")).respond("ok");
+      mockr.when(request().method((x) => x === "POST")).respond("ok");
       const res = await get("/test");
       expect(res.status).toEqual(404);
     });
@@ -243,7 +223,7 @@ describe("request()", () => {
       const xml = '<?xml version="1.0" encoding="UTF-8"?><doc>Test</doc>';
       mockr.when(request().body(xml)).respond("ok");
       const res = await post("/test", xml, {
-        "Content-Type": 'application/xml; charset="utf-8"'
+        "Content-Type": 'application/xml; charset="utf-8"',
       });
       expect(await res.text()).toEqual("ok");
     });
@@ -318,7 +298,7 @@ describe("request()", () => {
         .respond("ok");
       const res = await post("/test", undefined, {
         Authorization: "token",
-        Accept: "application/json"
+        Accept: "application/json",
       });
       expect(await res.text()).toEqual("ok");
     });
@@ -333,7 +313,7 @@ describe("request()", () => {
         .respond("ok");
       const res = await post("/test", undefined, {
         Authorization: "invalid",
-        Accept: "application/json"
+        Accept: "application/json",
       });
       expect(res.status).toEqual(404);
     });
@@ -341,7 +321,7 @@ describe("request()", () => {
     test("should match on match function", async () => {
       mockr.when(request().header("Authorization", not("token"))).respond("ok");
       const res = await post("/test", undefined, {
-        Authorization: "something"
+        Authorization: "something",
       });
       expect(await res.text()).toEqual("ok");
     });
@@ -349,7 +329,7 @@ describe("request()", () => {
     test("should not match match function", async () => {
       mockr.when(request().header("Authorization", not("token"))).respond("ok");
       const res = await post("/test", undefined, {
-        Authorization: "token"
+        Authorization: "token",
       });
       expect(res.status).toEqual(404);
     });
@@ -363,7 +343,7 @@ describe("request()", () => {
     test("should match on cookie", async () => {
       mockr.when(request().cookie("a", "b")).respond("ok");
       const res = await post("/test", undefined, {
-        Cookie: "a=b"
+        Cookie: "a=b",
       });
       expect(await res.text()).toEqual("ok");
     });
@@ -371,35 +351,23 @@ describe("request()", () => {
     test("should not match on cookie if the value does not match", async () => {
       mockr.when(request().cookie("a", "b")).respond("ok");
       const res = await post("/test", undefined, {
-        Cookie: "a=c"
+        Cookie: "a=c",
       });
       expect(res.status).toEqual(404);
     });
 
     test("should match on multiple cookies", async () => {
-      mockr
-        .when(
-          request()
-            .cookie("a", "b")
-            .cookie("b", "c")
-        )
-        .respond("ok");
+      mockr.when(request().cookie("a", "b").cookie("b", "c")).respond("ok");
       const res = await post("/test", undefined, {
-        Cookie: "a=b; b=c"
+        Cookie: "a=b; b=c",
       });
       expect(await res.text()).toEqual("ok");
     });
 
     test("should not match on multiple cookies if a value does not match", async () => {
-      mockr
-        .when(
-          request()
-            .cookie("a", "b")
-            .cookie("b", "c")
-        )
-        .respond("ok");
+      mockr.when(request().cookie("a", "b").cookie("b", "c")).respond("ok");
       const res = await post("/test", undefined, {
-        Cookie: "a=b; b=d"
+        Cookie: "a=b; b=d",
       });
       expect(res.status).toEqual(404);
     });
@@ -416,7 +384,7 @@ describe("request()", () => {
 
       form.append("test", stream, {
         contentType: "image/png",
-        filename: "red.png"
+        filename: "red.png",
       });
 
       mockr
@@ -424,7 +392,7 @@ describe("request()", () => {
           request().file("test", {
             fileName: "red.png",
             mimeType: "image/png",
-            size: 144
+            size: 144,
           })
         )
         .respond("ok");
@@ -439,12 +407,12 @@ describe("request()", () => {
 
       form.append("test", stream, {
         contentType: "image/png",
-        filename: "red.png"
+        filename: "red.png",
       });
 
       form.append("test", stream, {
         contentType: "image/png",
-        filename: "red.png"
+        filename: "red.png",
       });
 
       mockr
@@ -453,13 +421,13 @@ describe("request()", () => {
             {
               fileName: "red.png",
               mimeType: "image/png",
-              size: 144
+              size: 144,
             },
             {
               fileName: "red.png",
               mimeType: "image/png",
-              size: 144
-            }
+              size: 144,
+            },
           ])
         )
         .respond("ok");
@@ -474,7 +442,7 @@ describe("request()", () => {
 
       form.append("test", stream, {
         contentType: "image/png",
-        filename: "red.png"
+        filename: "red.png",
       });
 
       mockr
@@ -482,7 +450,7 @@ describe("request()", () => {
           request().file("test", {
             fileName: "differrent.png",
             mimeType: "image/png",
-            size: 144
+            size: 144,
           })
         )
         .respond("ok");

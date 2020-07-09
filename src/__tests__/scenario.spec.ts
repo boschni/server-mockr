@@ -22,29 +22,20 @@ describe("scenario()", () => {
 
   describe("()", () => {
     test("should match when started", async () => {
-      mockr
-        .scenario("id")
-        .when("/test")
-        .respond("ok");
+      mockr.scenario("id").when("/test").respond("ok");
       mockr.scenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
     });
 
     test("should not match when not started", async () => {
-      mockr
-        .scenario("id")
-        .when("/test")
-        .respond("ok");
+      mockr.scenario("id").when("/test").respond("ok");
       const res = await get("/test");
       expect(res.status).toEqual(404);
     });
 
     test("should not match when stopped", async () => {
-      mockr
-        .scenario("id")
-        .when("/test")
-        .respond("ok");
+      mockr.scenario("id").when("/test").respond("ok");
       const id = mockr.scenarioRunner("id");
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
@@ -77,7 +68,7 @@ describe("scenario()", () => {
       mockr.scenario("id").onStart(({ scenario }) => {
         scenario
           .when("/test")
-          .afterRespond(ctx =>
+          .afterRespond((ctx) =>
             setState("count", ctx.state.count ? ctx.state.count + 1 : 1)
           )
           .next();
@@ -96,15 +87,9 @@ describe("scenario()", () => {
       await mockr.stop();
       mockr = setup({ multipleScenarioRunners: false });
 
-      mockr
-        .scenario("id1")
-        .when("/test-1")
-        .respond("ok1");
+      mockr.scenario("id1").when("/test-1").respond("ok1");
 
-      mockr
-        .scenario("id2")
-        .when("/test-2")
-        .respond("ok2");
+      mockr.scenario("id2").when("/test-2").respond("ok2");
 
       mockr.scenarioRunner("id1");
       const res = await get("/test-1");
@@ -128,11 +113,7 @@ describe("scenario()", () => {
         .config("userId", { type: "string" })
         .onStart(({ config, scenario }) => {
           scenario
-            .when(
-              request()
-                .get("/users/:id/wallet")
-                .param("id", config.userId)
-            )
+            .when(request().get("/users/:id/wallet").param("id", config.userId))
             .respond({ amount: 0 });
         });
 
@@ -141,19 +122,15 @@ describe("scenario()", () => {
         .config("userId", { type: "string" })
         .onStart(({ config, scenario }) => {
           scenario
-            .when(
-              request()
-                .get("/users/:id/wallet")
-                .param("id", config.userId)
-            )
+            .when(request().get("/users/:id/wallet").param("id", config.userId))
             .respond({ amount: 100 });
         });
 
       const id1 = mockr.scenarioRunner("no-money", {
-        config: { userId: "1" }
+        config: { userId: "1" },
       });
       const id2 = mockr.scenarioRunner("no-money", {
-        config: { userId: "2" }
+        config: { userId: "2" },
       });
       mockr.scenarioRunner("has-money", { config: { userId: "3" } });
 
@@ -226,10 +203,7 @@ describe("scenario()", () => {
     });
 
     test("should set given state even though it is not defined", async () => {
-      mockr
-        .scenario("id")
-        .when("/test", state("language", "nl"))
-        .respond("ok");
+      mockr.scenario("id").when("/test", state("language", "nl")).respond("ok");
       mockr.scenarioRunner("id", { state: { language: "nl" } });
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");
@@ -242,7 +216,7 @@ describe("scenario()", () => {
         .when("/test", state("language", "nl"))
         .respond("ok");
       const id = mockr.scenarioRunner("id", {
-        state: { language: "nl" }
+        state: { language: "nl" },
       });
       const res = await get("/test");
       expect(await res.text()).toEqual("ok");

@@ -11,7 +11,7 @@ export const not = (matcher: MatchFn | JSONValue): MatchFn => {
     return {
       message: `${JSON.stringify(input)} should not match validator ${fn.name}`,
       name: "not",
-      pass
+      pass,
     };
   };
 

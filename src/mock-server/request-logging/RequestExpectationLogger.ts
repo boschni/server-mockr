@@ -38,7 +38,7 @@ export class RequestExpectationLogger {
     return {
       id: this.id,
       matchResult: this.matchResult,
-      verifyResult: this.verifyResult
+      verifyResult: this.verifyResult,
     };
   }
 }

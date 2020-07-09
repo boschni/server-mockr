@@ -62,10 +62,7 @@ describe("mockr.when()", () => {
       const res = await get("/test");
       expect(res.status).toEqual(404);
 
-      mockr
-        .when("/test")
-        .afterRespond(setState("a", "b"))
-        .respond("ok");
+      mockr.when("/test").afterRespond(setState("a", "b")).respond("ok");
       const res2 = await get("/test");
       expect(await res2.text()).toEqual("ok");
 

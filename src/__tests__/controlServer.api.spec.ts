@@ -22,10 +22,7 @@ describe("controlServer", () => {
 
   describe("POST /api/scenarios/:id/scenario-runners", () => {
     test("should start a scenario", async () => {
-      mockr
-        .scenario("id")
-        .when("/test")
-        .respond("ok");
+      mockr.scenario("id").when("/test").respond("ok");
 
       const controlRes = await post(
         controlUrl("/api/scenarios/id/scenario-runners")
@@ -33,7 +30,7 @@ describe("controlServer", () => {
       expect(await controlRes.json()).toMatchObject({
         id: 1,
         scenarioId: "id",
-        status: "STARTED"
+        status: "STARTED",
       });
 
       const res = await get("/test");
@@ -131,10 +128,7 @@ describe("controlServer", () => {
 
   describe("GET /api/scenarios/:id/scenario-runners/stop", () => {
     test("should stop a scenario", async () => {
-      mockr
-        .scenario("id")
-        .when("/test")
-        .respond("ok");
+      mockr.scenario("id").when("/test").respond("ok");
 
       await post(controlUrl("/api/scenarios/id/scenario-runners"));
       await post(controlUrl("/api/scenarios/id/scenario-runners/stop"));

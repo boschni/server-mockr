@@ -4,7 +4,7 @@ import ServerMockr, {
   request,
   response,
   setState,
-  state
+  state,
 } from ".";
 
 /*
@@ -15,9 +15,9 @@ const mockr = new ServerMockr({
   controlServerPort: 6001,
   mockServerPort: 6002,
   globals: {
-    mockServerUrl: "http://localhost:6002"
+    mockServerUrl: "http://localhost:6002",
   },
-  multipleScenarioRunners: true
+  multipleScenarioRunners: true,
 });
 
 mockr.start();
@@ -37,18 +37,18 @@ Steps:
   .config("locale", {
     type: "string",
     enum: ["nl-nl", "en-gb"],
-    default: "en-gb"
+    default: "en-gb",
   })
   .config("userId", {
     type: "string",
-    default: "1"
+    default: "1",
   })
   .state("todos", {
     type: "string",
     enum: ["saved"],
-    hidden: true
+    hidden: true,
   })
-  .onBootstrap(ctx =>
+  .onBootstrap((ctx) =>
     response().redirect(
       `${ctx.globals.mockServerUrl}/${ctx.config.locale}/todos?test=a&test=b`
     )
@@ -63,20 +63,11 @@ Steps:
         count++;
       });
 
-    scenario
-      .when(request("/times"))
-      .times(1)
-      .respond(response(1));
+    scenario.when(request("/times")).times(1).respond(response(1));
 
-    scenario
-      .when(request("/times"))
-      .times(1)
-      .respond(response(2));
+    scenario.when(request("/times")).times(1).respond(response(2));
 
-    scenario
-      .when(request("/times"))
-      .times(1)
-      .respond(response(3));
+    scenario.when(request("/times")).times(1).respond(response(3));
 
     scenario
       .when(request(anyOf(isEqualTo("/any-1"), isEqualTo("/any-2"))))
@@ -95,7 +86,7 @@ Steps:
     scenario
       .when(request("/en-gb/todos"), state("todos", undefined))
       .verify(request().query("test", ["a", "b"]))
-      .respond(ctx =>
+      .respond((ctx) =>
         response()
           .header("Set-Cookie", "SessionId=SomeSessionId; Path=/; HttpOnly")
           .delay(1000)

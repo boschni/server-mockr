@@ -4,7 +4,7 @@ import { clone } from "../utils/clone";
 import { ConfigValue, StateValue } from "../Values";
 import {
   ExpectationRunnerRequestLog,
-  RequestExpectationLogger
+  RequestExpectationLogger,
 } from "./RequestExpectationLogger";
 
 /*
@@ -47,7 +47,7 @@ export class RequestScenarioLogger {
       scenarioId: this.scenarioId,
       config: this.config,
       state: this.state,
-      expectations: this.expectationLoggers.map(x => x.getJSON())
+      expectations: this.expectationLoggers.map((x) => x.getJSON()),
     };
   }
 }

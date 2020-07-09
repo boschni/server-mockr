@@ -9,7 +9,7 @@ export const isEqualTo = (value: unknown) => {
         value
       )}`,
       name: "equalTo",
-      pass: true
+      pass: true,
     };
 
     try {

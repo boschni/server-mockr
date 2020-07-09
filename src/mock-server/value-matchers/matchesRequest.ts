@@ -6,7 +6,7 @@ import {
   isExtendedMatchResult,
   isPassed,
   MatchFn,
-  MatchResult
+  MatchResult,
 } from "./MatchFn";
 import { prop } from "./prop";
 
@@ -40,7 +40,7 @@ export function isMatchRequestMatchResult(
   return typeof result === "boolean" ? false : result.name === "matchesRequest";
 }
 
-const validationOrder: Array<keyof RequestMatchDef> = [
+const validationOrder: (keyof RequestMatchDef)[] = [
   "method",
   "path",
   "url",
@@ -49,7 +49,7 @@ const validationOrder: Array<keyof RequestMatchDef> = [
   "cookies",
   "headers",
   "body",
-  "files"
+  "files",
 ];
 
 /*
@@ -62,7 +62,7 @@ export const matchesRequest = (def: RequestMatchDef) => {
       message: `matches request`,
       name: "matchesRequest",
       params: {},
-      pass: true
+      pass: true,
     };
 
     const reqCopy = { ...req };

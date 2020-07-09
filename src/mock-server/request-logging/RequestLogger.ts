@@ -3,11 +3,11 @@ import { isPassed } from "../value-matchers/MatchFn";
 import { RequestValue, ResponseValue } from "../Values";
 import {
   ExpectationRunnerRequestLog,
-  RequestExpectationLogger
+  RequestExpectationLogger,
 } from "./RequestExpectationLogger";
 import {
   RequestScenarioLogger,
-  ScenarioRunnerRequestLog
+  ScenarioRunnerRequestLog,
 } from "./RequestScenarioLogger";
 
 /*
@@ -65,14 +65,14 @@ export class RequestLogger {
   }
 
   getJSON(): RequestLog {
-    const expectationRunners = this.expectationLoggers.map(e => e.getJSON());
-    const matchedExpectationRunners = expectationRunners.filter(e =>
+    const expectationRunners = this.expectationLoggers.map((e) => e.getJSON());
+    const matchedExpectationRunners = expectationRunners.filter((e) =>
       isPassed(e.matchResult)
     );
 
-    const scenarioRunners = this.scenarioLoggers.map(s => s.getJSON());
-    const matchedScenarioRunners = scenarioRunners.filter(s =>
-      s.expectations.some(e => isPassed(e.matchResult))
+    const scenarioRunners = this.scenarioLoggers.map((s) => s.getJSON());
+    const matchedScenarioRunners = scenarioRunners.filter((s) =>
+      s.expectations.some((e) => isPassed(e.matchResult))
     );
 
     return {
@@ -84,7 +84,7 @@ export class RequestLogger {
       requestValue: this.requestValue,
       responseValue: this.responseValue,
       startedDateTime: this.startedDateTime,
-      time: this.time
+      time: this.time,
     };
   }
 }

@@ -6,7 +6,7 @@ import {
   OutgoingRequestValue,
   PathValue,
   QueryValue,
-  UrlValue
+  UrlValue,
 } from "./Values";
 
 /*
@@ -119,7 +119,7 @@ export class OutgoingRequestBuilder {
       method: this._method,
       path: this._path,
       query: this._query,
-      url: this._url
+      url: this._url,
     };
   }
 }

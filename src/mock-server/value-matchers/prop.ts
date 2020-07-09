@@ -11,7 +11,7 @@ export const prop = (name: string, matcher: MatchFn | JSONValue) => {
         input
       )} should match validator ${fn.matchName}`,
       name: "prop",
-      pass: true
+      pass: true,
     };
 
     const value =

@@ -8,7 +8,7 @@ import {
   TableBodyRow,
   TableHead,
   TableHeadCell,
-  TableHeadRow
+  TableHeadRow,
 } from "../components/Table";
 import { useFetch } from "../hooks/useFetch";
 import { usePersistentState } from "../hooks/usePersistentState";
@@ -30,21 +30,21 @@ export const ScenarioPage: React.FC = () => {
   }
 
   const filteredScenarios = scenarios.filter(
-    scenario =>
+    (scenario) =>
       fuzzyMatch(scenario.id, idFilter) &&
       fuzzyMatch(scenario.tags.join(","), tagFilter)
   );
 
   async function startScenario(scenario: ApiScenario) {
     await fetch(`/api/scenarios/${scenario.id}/scenario-runners`, {
-      method: "POST"
+      method: "POST",
     });
     scenariosFetch.refetch();
   }
 
   async function stopScenario(scenario: ApiScenario) {
     await fetch(`/api/scenarios/${scenario.id}/scenario-runners/stop`, {
-      method: "POST"
+      method: "POST",
     });
     scenariosFetch.refetch();
   }
@@ -88,7 +88,7 @@ export const ScenarioPage: React.FC = () => {
           <input
             type="text"
             value={idFilter}
-            onChange={e => setIdFilter(e.target.value)}
+            onChange={(e) => setIdFilter(e.target.value)}
           />
         </div>
         <div className="filters__item">
@@ -96,7 +96,7 @@ export const ScenarioPage: React.FC = () => {
           <input
             type="text"
             value={tagFilter}
-            onChange={e => setTagFilter(e.target.value)}
+            onChange={(e) => setTagFilter(e.target.value)}
           />
         </div>
       </div>
@@ -114,7 +114,7 @@ export const ScenarioPage: React.FC = () => {
           </TableHeadRow>
         </TableHead>
         <TableBody>
-          {filteredScenarios.map(scenario => (
+          {filteredScenarios.map((scenario) => (
             <React.Fragment key={scenario.id}>
               <TableBodyRow
                 row={
@@ -152,7 +152,7 @@ export const ScenarioPage: React.FC = () => {
                           <h2>Description</h2>
                           <div
                             dangerouslySetInnerHTML={{
-                              __html: scenario.description
+                              __html: scenario.description,
                             }}
                           />
                         </React.Fragment>
@@ -194,7 +194,7 @@ export const ScenarioPage: React.FC = () => {
                                       defaultValue={schema.default}
                                     >
                                       <option value="">Select</option>
-                                      {schema.enum.map(enumValue => (
+                                      {schema.enum.map((enumValue) => (
                                         <option
                                           key={enumValue}
                                           value={enumValue}
@@ -208,7 +208,9 @@ export const ScenarioPage: React.FC = () => {
                               )
                             )}
                             <button
-                              onClick={e => onClickFormStartButton(e, scenario)}
+                              onClick={(e) =>
+                                onClickFormStartButton(e, scenario)
+                              }
                             >
                               Start
                             </button>
