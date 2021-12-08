@@ -1,6 +1,6 @@
 import { Expectation } from "./Expectation";
 import { Scenario } from "./Scenario";
-import { GlobalsValue } from "./Values";
+import { GlobalsValue, ResponseValue } from "./Values";
 
 /*
  * CONFIG
@@ -14,6 +14,7 @@ export interface Config {
   mockServerPort: number;
   multipleScenarioRunners: boolean;
   scenarios: Scenario[];
+  notFoundResponse?: ResponseValue;
 }
 
 export interface InitialConfig extends Partial<Config> {}

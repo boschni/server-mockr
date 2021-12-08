@@ -919,6 +919,13 @@ const mockr = new ServerMockr({
   controlServerPort: 6001,
   mockServerPort: 6002,
   multipleScenarioRunners: true,
-  globals: { globalValue: "value" }
+  globals: { globalValue: "value" },
+  notFoundResponse: {
+    headers: {
+      "Content-Type": "text/plain",
+    },
+    status: 404,
+    body: "server-mockr: Not Found",
+  }
 });
 ```

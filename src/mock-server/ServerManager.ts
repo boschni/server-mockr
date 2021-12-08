@@ -118,7 +118,7 @@ export class ServerManager {
 
     const finalResponse: ResponseValue = handled
       ? response
-      : createNotFoundResponseValue();
+      : this.config.notFoundResponse || createNotFoundResponseValue();
 
     await respondWithResponseValue(res, finalResponse);
 
