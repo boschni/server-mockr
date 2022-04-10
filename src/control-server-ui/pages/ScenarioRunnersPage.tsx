@@ -80,13 +80,15 @@ export const ScenarioRunnersPage: React.FC = () => {
                     <TableBodyCell>{runner.scenarioId}</TableBodyCell>
                     <TableBodyCell>{runner.status}</TableBodyCell>
                     <TableBodyCell>
-                      {String(
-                        new Date(runner.startedDateTime!).getHours()
-                      ).padStart(2, "0")}
+                      {runner.startedDateTime &&
+                        String(
+                          new Date(runner.startedDateTime).getHours()
+                        ).padStart(2, "0")}
                       :
-                      {String(
-                        new Date(runner.startedDateTime!).getMinutes()
-                      ).padStart(2, "0")}
+                      {runner.startedDateTime &&
+                        String(
+                          new Date(runner.startedDateTime).getMinutes()
+                        ).padStart(2, "0")}
                     </TableBodyCell>
                     <TableBodyCell style={{ textAlign: "right" }}>
                       <button onClick={() => stopRunner(runner)}>Stop</button>

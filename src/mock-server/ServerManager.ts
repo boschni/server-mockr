@@ -96,11 +96,12 @@ export class ServerManager {
     const response = createResponseValue();
     const requestLogger = new RequestLogger(request);
 
-    const globalExpectationManagerRequestCtx: ExpectationManagerRequestContext = {
-      request,
-      requestLogger,
-      response,
-    };
+    const globalExpectationManagerRequestCtx: ExpectationManagerRequestContext =
+      {
+        request,
+        requestLogger,
+        response,
+      };
 
     let handled = await this.globalExpectationManager.onRequest(
       globalExpectationManagerRequestCtx

@@ -138,6 +138,7 @@ function requestLogToEntry(log: RequestLog): HARLogEntry {
     cache: {},
     timings,
     request: requestValueToHARRequest(log.requestValue),
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     response: responseValueToHARResponse(log.responseValue!),
     startedDateTime: log.startedDateTime,
     time: timings.receive + timings.send + timings.wait,

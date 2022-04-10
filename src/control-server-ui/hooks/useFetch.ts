@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 interface UseFetchResult<T> {
   data?: T;
-  error?: any;
+  error?: unknown;
   refetch: () => Promise<void>;
 }
 
@@ -11,7 +11,7 @@ export function useFetch<T>(
   init?: RequestInit
 ): UseFetchResult<T> {
   const [response, setResponse] = useState<T>();
-  const [error, setError] = useState();
+  const [error, setError] = useState<unknown>();
 
   async function fetchData() {
     try {

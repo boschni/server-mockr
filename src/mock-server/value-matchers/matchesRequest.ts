@@ -74,9 +74,8 @@ export const matchesRequest = (def: RequestMatchDef) => {
         addSubResult(result, subResult);
 
         if (isExtendedMatchResult(subResult)) {
-          const matchPathResult = subResult.subResults?.find(
-            isMatchesPathResult
-          );
+          const matchPathResult =
+            subResult.subResults?.find(isMatchesPathResult);
 
           if (matchPathResult && isMatchesPathResult(matchPathResult)) {
             result.params = matchPathResult.params;

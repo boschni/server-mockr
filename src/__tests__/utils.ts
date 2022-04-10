@@ -26,6 +26,7 @@ export function get(path: string, headers?: HeadersMap) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function post(path: string, body?: any, headers?: HeadersMap) {
   const url = path.startsWith("http") ? path : mockUrl(path);
 

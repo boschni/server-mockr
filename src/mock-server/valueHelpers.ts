@@ -25,7 +25,8 @@ import {
 export const incomingMessageToRequestValue = (
   req: IncomingMessage
 ): RequestValue => {
-  const url = new URL(req.url!, "http://localhost/");
+  const reqUrl = req.url ?? "";
+  const url = new URL(reqUrl, "http://localhost/");
   const query = urlSearchParamsToQueryValue(url.searchParams);
   const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
   const reqBody = (req as any).body;
@@ -49,9 +50,9 @@ export const incomingMessageToRequestValue = (
     headers: req.headers,
     method: req.method as MethodValue,
     params: {},
-    path: url.pathname!,
+    path: url.pathname,
     query,
-    url: req.url!,
+    url: reqUrl,
   };
 
   return request;
@@ -325,7 +326,7 @@ export const executeOutgoingRequest = async (
     const cookieHeader = cookiesValueToCookieHeader(req.cookies);
 
     if (cookieHeader) {
-      init.headers.append("Cookie", cookieHeader);
+      (init.headers as Headers).append("Cookie", cookieHeader);
     }
   }
 

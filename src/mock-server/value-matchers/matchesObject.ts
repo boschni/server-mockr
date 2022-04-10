@@ -17,7 +17,7 @@ export const matchesObject = (value: unknown) => {
       expect(input).toMatchObject(value as any);
     } catch (e) {
       result.pass = false;
-      result.message = stripAnsi(e.toString());
+      result.message = stripAnsi(`${e}`);
     }
 
     return result;

@@ -1,10 +1,10 @@
-import React, { TdHTMLAttributes, useState } from "react";
+import React, { PropsWithChildren, TdHTMLAttributes, useState } from "react";
 
 /*
  * COMPONENT
  */
 
-export const Table: React.FC = ({ children }) => (
+export const Table: React.FC<PropsWithChildren<unknown>> = ({ children }) => (
   <table className="table">{children}</table>
 );
 
@@ -12,27 +12,33 @@ export const Table: React.FC = ({ children }) => (
  * COMPONENT
  */
 
-export const TableHead: React.FC = ({ children }) => <thead>{children}</thead>;
+export const TableHead: React.FC<PropsWithChildren<unknown>> = ({
+  children,
+}) => <thead>{children}</thead>;
 
 /*
  * COMPONENT
  */
 
-export const TableHeadRow: React.FC = ({ children }) => <tr>{children}</tr>;
+export const TableHeadRow: React.FC<PropsWithChildren<unknown>> = ({
+  children,
+}) => <tr>{children}</tr>;
 
 /*
  * COMPONENT
  */
 
-export const TableHeadCell: React.FC<TdHTMLAttributes<
-  HTMLTableDataCellElement
->> = ({ children, ...rest }) => <th {...rest}>{children}</th>;
+export const TableHeadCell: React.FC<
+  TdHTMLAttributes<HTMLTableCellElement>
+> = ({ children, ...rest }) => <th {...rest}>{children}</th>;
 
 /*
  * COMPONENT
  */
 
-export const TableBody: React.FC = ({ children }) => <tbody>{children}</tbody>;
+export const TableBody: React.FC<PropsWithChildren<unknown>> = ({
+  children,
+}) => <tbody>{children}</tbody>;
 
 /*
  * COMPONENT
@@ -72,6 +78,6 @@ export const TableBodyRow: React.FC<TableBodyRowProps> = ({
  * COMPONENT
  */
 
-export const TableBodyCell: React.FC<TdHTMLAttributes<
-  HTMLTableDataCellElement
->> = ({ children, ...rest }) => <td {...rest}>{children}</td>;
+export const TableBodyCell: React.FC<
+  TdHTMLAttributes<HTMLTableCellElement>
+> = ({ children, ...rest }) => <td {...rest}>{children}</td>;

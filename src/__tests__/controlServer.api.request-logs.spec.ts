@@ -31,7 +31,8 @@ describe("controlServer", () => {
       const createRes = await post(
         controlUrl("/api/scenarios/id/scenario-runners")
       );
-      const runner: ApiCreateScenarioRunnerSuccessResponse = await createRes.json();
+      const runner: ApiCreateScenarioRunnerSuccessResponse =
+        await createRes.json();
 
       await post("/test", { a: "b" });
 
@@ -76,7 +77,8 @@ describe("controlServer", () => {
       const createRes = await post(
         controlUrl("/api/scenarios/id/scenario-runners")
       );
-      const runner: ApiCreateScenarioRunnerSuccessResponse = await createRes.json();
+      const runner: ApiCreateScenarioRunnerSuccessResponse =
+        await createRes.json();
 
       await get("/test-2");
 

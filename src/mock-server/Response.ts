@@ -160,7 +160,7 @@ export class Response {
 
       if (this._delay) {
         const delayAction = new DelayAction(this._delay);
-        await delayAction.execute(ctx);
+        await delayAction.execute();
       }
     } catch (err) {
       // tslint:disable-next-line: no-console

@@ -127,7 +127,7 @@ export class ControlServer {
       if (this.server) {
         this.server.close(resolve);
       } else {
-        resolve();
+        resolve(undefined);
       }
     });
   }
@@ -195,8 +195,8 @@ export class ControlServer {
     const request = incomingMessageToRequestValue(req);
 
     const scenarioId = req.params.id;
-    let config: any;
-    let state: any;
+    let config: ConfigValue;
+    let state: StateValue;
 
     if (req.headers["content-type"] === "application/json") {
       config = req.body.config;
@@ -361,7 +361,7 @@ export class ControlServer {
     param: string,
     query: QueryValue
   ): T => {
-    const obj: any = {};
+    const obj: Record<string, string | string[] | undefined> = {};
 
     for (const [key, value] of Object.entries(query)) {
       const match = key.match(`${param}\\[([a-zA-Z0-9]+)\\]`);
@@ -370,7 +370,7 @@ export class ControlServer {
       }
     }
 
-    return obj;
+    return obj as T;
   };
 
   private scenarioToApiScenario(scenario: Scenario): ApiScenario {
